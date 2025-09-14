@@ -1,140 +1,176 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="ソース ファイル">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="ヘッダー ファイル">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
     <Filter Include="リソース ファイル">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{f0b4993d-1960-4111-8126-c2e41ebf1c34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer">
+      <UniqueIdentifier>{d08fb31f-c756-4ba2-9bcc-a1e328db9e69}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\DirectX">
+      <UniqueIdentifier>{aa502e2e-b0cb-4a92-8e8d-77c641aad1fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utilitiy">
+      <UniqueIdentifier>{bb8a84b9-f29a-4b88-8b08-08b4b48f6687}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Input">
+      <UniqueIdentifier>{e9c11ad1-61e3-4f77-b9df-15d9ba70366a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader">
+      <UniqueIdentifier>{0c289506-d212-409c-b029-32958b6f952d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource">
+      <UniqueIdentifier>{4367b494-e424-42b7-8a55-49629fc98f15}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="Source\Core\Game.cpp">
+      <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Game.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="Source\DirectX\Direct3D.cpp">
+      <Filter>Renderer\DirectX</Filter>
     </ClCompile>
-    <ClCompile Include="Input\InputAction.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="Source\DirectX\ConstantBuffer.cpp">
+      <Filter>Renderer\DirectX</Filter>
     </ClCompile>
-    <ClCompile Include="Utility\Math.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="Source\DirectX\DescriptorHeap.cpp">
+      <Filter>Renderer\DirectX</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\RendererManager.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="Source\DirectX\AssimpLoader.cpp">
+      <Filter>Renderer\DirectX</Filter>
     </ClCompile>
-    <ClCompile Include="Input\InputManager.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="Source\DirectX\IndexBuffer.cpp">
+      <Filter>Renderer\DirectX</Filter>
     </ClCompile>
-    <ClCompile Include="DirectX\Direct3D.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="Source\Utility\Math.cpp">
+      <Filter>Utilitiy</Filter>
     </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="Source\DirectX\VertexBuffer.cpp">
+      <Filter>Renderer\DirectX</Filter>
     </ClCompile>
-    <ClCompile Include="Scene.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="Source\DirectX\Texture2D.cpp">
+      <Filter>Renderer\DirectX</Filter>
     </ClCompile>
-    <ClCompile Include="DirectX\VertexBuffer.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="Source\Core\main.cpp">
+      <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="DirectX\ConstantBuffer.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="Source\Core\Scene.cpp">
+      <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="DirectX\RootSignature.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="Source\Input\InputManager.cpp">
+      <Filter>Input</Filter>
     </ClCompile>
-    <ClCompile Include="DirectX\ShaderStruct.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="Source\Input\InputAction.cpp">
+      <Filter>Input</Filter>
     </ClCompile>
-    <ClCompile Include="DirectX\PipelineState.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="Source\DirectX\PipelineState.cpp">
+      <Filter>Renderer\DirectX</Filter>
     </ClCompile>
-    <ClCompile Include="DirectX\IndexBuffer.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="Source\DirectX\RootSignature.cpp">
+      <Filter>Renderer\DirectX</Filter>
     </ClCompile>
-    <ClCompile Include="DirectX\AssimpLoader.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="Source\Renderer\RendererManager.cpp">
+      <Filter>Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="DirectX\DescriptorHeap.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="Source\DirectX\ShaderStruct.cpp">
+      <Filter>Renderer\DirectX</Filter>
     </ClCompile>
-    <ClCompile Include="DirectX\Texture2D.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="Source\Renderer\Camera.cpp">
+      <Filter>Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Resource\Model.cpp">
+      <Filter>Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Resource\Asset.cpp">
+      <Filter>Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\GameObject.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\Component.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Core\Game.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Source\Core\Game.h">
+      <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Input\InputAction.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Source\DirectX\Direct3D.h">
+      <Filter>Renderer\DirectX</Filter>
     </ClInclude>
-    <ClInclude Include="Utility\Math.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Source\DirectX\DirectX.h">
+      <Filter>Renderer\DirectX</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\RendererManager.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Source\DirectX\ConstantBuffer.h">
+      <Filter>Renderer\DirectX</Filter>
     </ClInclude>
-    <ClInclude Include="Input\InputManager.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Source\DirectX\DescriptorHeap.h">
+      <Filter>Renderer\DirectX</Filter>
     </ClInclude>
-    <ClInclude Include="DirectX\DirectX.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Source\DirectX\AssimpLoader.h">
+      <Filter>Renderer\DirectX</Filter>
     </ClInclude>
-    <ClInclude Include="DirectX\Direct3D.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Source\DirectX\IndexBuffer.h">
+      <Filter>Renderer\DirectX</Filter>
     </ClInclude>
-    <ClInclude Include="Framework.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Source\Utility\Math.h">
+      <Filter>Utilitiy</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Source\DirectX\VertexBuffer.h">
+      <Filter>Renderer\DirectX</Filter>
     </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Source\DirectX\Texture2D.h">
+      <Filter>Renderer\DirectX</Filter>
     </ClInclude>
-    <ClInclude Include="DirectX\ShaderStruct.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Source\Core\Scene.h">
+      <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="DirectX\VertexBuffer.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Source\DirectX\RootSignature.h">
+      <Filter>Renderer\DirectX</Filter>
     </ClInclude>
-    <ClInclude Include="DirectX\ConstantBuffer.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Source\Input\InputManager.h">
+      <Filter>Input</Filter>
     </ClInclude>
-    <ClInclude Include="DirectX\RootSignature.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Source\Framework.h">
+      <Filter>Utilitiy</Filter>
     </ClInclude>
-    <ClInclude Include="DirectX\PipelineState.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Source\Input\InputAction.h">
+      <Filter>Input</Filter>
     </ClInclude>
-    <ClInclude Include="DirectX\IndexBuffer.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Source\DirectX\PipelineState.h">
+      <Filter>Renderer\DirectX</Filter>
     </ClInclude>
-    <ClInclude Include="DirectX\AssimpLoader.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Source\Renderer\RendererManager.h">
+      <Filter>Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="DirectX\DescriptorHeap.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Source\DirectX\ShaderStruct.h">
+      <Filter>Renderer\DirectX</Filter>
     </ClInclude>
-    <ClInclude Include="DirectX\Texture2D.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Source\Renderer\Camera.h">
+      <Filter>Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Resource\Model.h">
+      <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Resource\Asset.h">
+      <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\GameObject.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Component.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shader\Sprite.hlsl" />
-    <FxCompile Include="SimpleVS.hlsl" />
-    <FxCompile Include="SimplePS.hlsl" />
+    <FxCompile Include="Assets\Shader\SimplePS.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="Assets\Shader\SimpleVS.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

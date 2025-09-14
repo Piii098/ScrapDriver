@@ -100,7 +100,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\Source</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -121,7 +121,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\Source</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -140,7 +140,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\Source</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -161,7 +161,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\Source</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -175,60 +175,64 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DirectX\AssimpLoader.cpp" />
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="DirectX\ConstantBuffer.cpp" />
-    <ClCompile Include="Core\Game.cpp" />
-    <ClCompile Include="DirectX\DescriptorHeap.cpp" />
-    <ClCompile Include="DirectX\Direct3D.cpp" />
-    <ClCompile Include="DirectX\IndexBuffer.cpp" />
-    <ClCompile Include="DirectX\PipelineState.cpp" />
-    <ClCompile Include="Renderer\RendererManager.cpp" />
-    <ClCompile Include="Input\InputAction.cpp" />
-    <ClCompile Include="Input\InputManager.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="DirectX\RootSignature.cpp" />
-    <ClCompile Include="Scene.cpp" />
-    <ClCompile Include="DirectX\ShaderStruct.cpp" />
-    <ClCompile Include="DirectX\Texture2D.cpp" />
-    <ClCompile Include="Utility\Math.cpp" />
-    <ClCompile Include="DirectX\VertexBuffer.cpp" />
+    <ClCompile Include="Source\Core\Component.cpp" />
+    <ClCompile Include="Source\Core\GameObject.cpp" />
+    <ClCompile Include="Source\DirectX\AssimpLoader.cpp" />
+    <ClCompile Include="Source\Renderer\Camera.cpp" />
+    <ClCompile Include="Source\DirectX\ConstantBuffer.cpp" />
+    <ClCompile Include="Source\Core\Game.cpp" />
+    <ClCompile Include="Source\DirectX\DescriptorHeap.cpp" />
+    <ClCompile Include="Source\DirectX\Direct3D.cpp" />
+    <ClCompile Include="Source\DirectX\IndexBuffer.cpp" />
+    <ClCompile Include="Source\DirectX\PipelineState.cpp" />
+    <ClCompile Include="Source\Renderer\RendererManager.cpp" />
+    <ClCompile Include="Source\Input\InputAction.cpp" />
+    <ClCompile Include="Source\Input\InputManager.cpp" />
+    <ClCompile Include="Source\Core\main.cpp" />
+    <ClCompile Include="Source\DirectX\RootSignature.cpp" />
+    <ClCompile Include="Source\Core\Scene.cpp" />
+    <ClCompile Include="Source\DirectX\ShaderStruct.cpp" />
+    <ClCompile Include="Source\DirectX\Texture2D.cpp" />
+    <ClCompile Include="Source\Resource\Asset.cpp" />
+    <ClCompile Include="Source\Resource\Model.cpp" />
+    <ClCompile Include="Source\Utility\Math.cpp" />
+    <ClCompile Include="Source\DirectX\VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DirectX\AssimpLoader.h" />
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="DirectX\ConstantBuffer.h" />
-    <ClInclude Include="Core\Game.h" />
-    <ClInclude Include="DirectX\DescriptorHeap.h" />
-    <ClInclude Include="DirectX\DirectX.h" />
-    <ClInclude Include="DirectX\Direct3D.h" />
-    <ClInclude Include="Framework.h" />
-    <ClInclude Include="DirectX\IndexBuffer.h" />
-    <ClInclude Include="DirectX\PipelineState.h" />
-    <ClInclude Include="Renderer\RendererManager.h" />
-    <ClInclude Include="Input\InputAction.h" />
-    <ClInclude Include="Input\InputManager.h" />
-    <ClInclude Include="DirectX\RootSignature.h" />
-    <ClInclude Include="Scene.h" />
-    <ClInclude Include="DirectX\ShaderStruct.h" />
-    <ClInclude Include="DirectX\Texture2D.h" />
-    <ClInclude Include="Utility\Math.h" />
-    <ClInclude Include="DirectX\VertexBuffer.h" />
+    <ClInclude Include="Source\Core\Component.h" />
+    <ClInclude Include="Source\Core\GameObject.h" />
+    <ClInclude Include="Source\DirectX\AssimpLoader.h" />
+    <ClInclude Include="Source\Renderer\Camera.h" />
+    <ClInclude Include="Source\DirectX\ConstantBuffer.h" />
+    <ClInclude Include="Source\Core\Game.h" />
+    <ClInclude Include="Source\DirectX\DescriptorHeap.h" />
+    <ClInclude Include="Source\DirectX\DirectX.h" />
+    <ClInclude Include="Source\DirectX\Direct3D.h" />
+    <ClInclude Include="Source\Framework.h" />
+    <ClInclude Include="Source\DirectX\IndexBuffer.h" />
+    <ClInclude Include="Source\DirectX\PipelineState.h" />
+    <ClInclude Include="Source\Renderer\RendererManager.h" />
+    <ClInclude Include="Source\Input\InputAction.h" />
+    <ClInclude Include="Source\Input\InputManager.h" />
+    <ClInclude Include="Source\DirectX\RootSignature.h" />
+    <ClInclude Include="Source\Core\Scene.h" />
+    <ClInclude Include="Source\DirectX\ShaderStruct.h" />
+    <ClInclude Include="Source\DirectX\Texture2D.h" />
+    <ClInclude Include="Source\Resource\Asset.h" />
+    <ClInclude Include="Source\Resource\Model.h" />
+    <ClInclude Include="Source\Utility\Math.h" />
+    <ClInclude Include="Source\DirectX\VertexBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shader\Sprite.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Effect</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
-    </FxCompile>
-    <FxCompile Include="SimplePS.hlsl">
+    <FxCompile Include="Assets\Shader\SimplePS.hlsl">
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pixel</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="SimpleVS.hlsl">
+    <FxCompile Include="Assets\Shader\SimpleVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">vert</EntryPointName>
