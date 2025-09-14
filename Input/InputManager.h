@@ -1,0 +1,172 @@
+#pragma once
+#include <vector>
+#include <string>
+#include <SDL3/SDL_scancode.h>
+#include <SDL3/SDL_gamepad.h>
+#include <unordered_map>
+#include "Framework.h"
+#include "Input/InputAction.h"
+
+/// @brief ボタンの状態
+enum class BUTTON_STATE {
+	NONE, ///< 何も押されていない
+	DOWN, ///< 押された瞬間
+	UP,   ///< 離された瞬間
+	PRESS ///< 押し続けている
+};
+
+
+/// @brief キーボードの状態
+/// キーボードの状態を管理し、InputManagerによって使用される
+class KeyboardState {
+public:
+	// フレンド宣言
+	friend class InputManager;
+
+	// ===== メンバ関数 ===== 
+
+	/// @brief キーの状態を取得する
+	/// @param key キーコード
+	/// @return キーの状態
+	BUTTON_STATE GetKeyState(SDL_Scancode key) const;
+
+	bool IsAllKey() const;
+
+	/// @brief キーの状態を更新する
+	/// @param key キーコード
+	/// @param isDown キーが押されているかどうか
+	void UpdateKeyState(SDL_Scancode key, bool isDown);
+
+private:
+	bool _currentKeyState[SDL_SCANCODE_COUNT];	///< 現在のキーの状態
+	bool _previousKeyState[SDL_SCANCODE_COUNT];	///< 1フレーム前のキーの状態
+};
+
+/// @brief マウスの状態
+/// マウスの状態を管理し、InputManagerによって使用される
+class MouseState {
+public:
+	// フレンド宣言
+	friend class InputManager;
+
+	// ===== メンバ関数 ===== //
+
+	/// @brief マウスの座標を取得する
+	/// @return マウスの座標
+	const Vector2& GetPosition() const { return _position; }
+
+	/// @brief マウスのボタンの状態を取得する
+	/// @param button マウスボタン
+	/// @return ボタンの状態
+	BUTTON_STATE GetButtonState(SDL_MouseButton button) const;
+
+	//bool IsAllButton() const;
+
+	bool IsRealtive() const { return _isRelative; }
+	void IsRelative(bool flag) { _isRelative = flag; }
+
+private:
+	Vector2 _position;			///< マウスの座標
+	Vector2 _wheel;				///< マウスのホイール
+	Uint32 _currentButtons;		///< 現在のボタンの状態
+	Uint32 _previousButtons;	///< 1フレーム前のボタンの状態
+	bool _isRelative;			///< 相対座標かどうか
+};
+
+
+
+/// @brief ゲームパッドの状態
+/// ゲームパッドの状態を管理し、InputManagerによって使用される
+class GamepadState {
+public:
+	// フレンド宣言
+	friend class InputManager;
+
+	// ===== メンバ関数 ===== //
+
+	/// @brief ボタンの状態を取得する
+	/// @param button ボタン
+	/// @return ボタンの状態
+	BUTTON_STATE GetButtonState(SDL_GamepadButton button) const;
+
+	bool IsAllButton() const;
+
+	bool GetIsConnected() const { return _isConnected; }
+
+	/// @brief トリガー、スティックの1次元軸の値を取得する
+	/// @param axis ゲームパッドの軸
+	float GetAxis(SDL_GamepadAxis axis) const;
+
+	/// @brief スティックの2次元軸の値を取得する
+	/// @param stick ゲームパッドのスティック
+	Vector2 GetStickAxis(SDL_GamepadStick stick) const;
+
+private:
+
+	Uint8 _currentButtons[SDL_GAMEPAD_BUTTON_COUNT];
+	Uint8 _previousButtons[SDL_GAMEPAD_BUTTON_COUNT];
+	float _leftTrigger;
+	float _rightTrigger;
+	Vector2 _leftStick;
+	Vector2 _rightStick;
+	bool _isConnected;
+};
+
+
+struct InputState {
+	KeyboardState keyboard;
+	MouseState mouse;
+	GamepadState gamepad;
+};
+
+struct AxisMapping {
+	InputCode positive;
+	InputCode negative;
+	float value; ///< 入力の値
+	float sensitivity;
+	float gravity;
+	float deadZone;
+	bool snap;
+
+	AxisMapping() : positive(InputCode()), negative(InputCode()), sensitivity(10.0f), gravity(10.0f), deadZone(0.0f), snap(false), value(0.f) {}
+};
+
+/// @brief 入力システム
+/// キーボード、マウス、ゲームパッドの入力を管理、更新する
+class InputManager {
+public:
+
+	InputManager(class Game& game);
+	~InputManager();
+
+	bool Initialize();
+	void ProcessInput(SDL_Event& event);
+	void Update(float deltaTime);
+	void Shutdown();
+	void PreUpdate();
+
+	void SetAxisMapping(const std::string& name, InputCode negative, InputCode positive);
+
+	void SetRelativeMouseMode(bool flag);
+	float GetAxis(const std::string& name) const;
+
+	const InputState& GetState() const { return _state; }
+	SDL_Window* GetWindow() const { return _window; }
+private:
+	void KeyboardUpdate();
+	void GamepadUpdate();
+	void MouseUpdate();
+
+	void AxisUpdate(float deltaTime);
+
+	float Filter1D(int input);
+	Vector2 Filter2D(int inputX, int inputY);
+
+	std::unordered_map<std::string, AxisMapping> _axisMap;	///< アクションマップ
+	Game& _game;
+	SDL_Window* _window;
+	InputState _state; // 入力状態
+	SDL_Gamepad* _gamepad;
+
+};
+
