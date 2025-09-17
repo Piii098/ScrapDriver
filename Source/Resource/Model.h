@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Resource/Asset.h"
 #include "DirectX/ShaderStruct.h"
 #include "DirectX/DescriptorHeap.h"

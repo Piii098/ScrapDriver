@@ -1,13 +1,13 @@
-#include "DirectX/VertexBuffer.h"
+ï»¿#include "DirectX/VertexBuffer.h"
 #include "Framework.h"
 
 VertexBuffer::VertexBuffer(size_t size, size_t stride, const void* pInitData)
 {
 
-	auto prop = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD); 	// ƒq[ƒvƒvƒƒpƒeƒB
-	auto desc = CD3DX12_RESOURCE_DESC::Buffer(size); 	// ƒŠƒ\[ƒX‚ÌÝ’è
+	auto prop = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD); 	// ãƒ’ãƒ¼ãƒ—ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£
+	auto desc = CD3DX12_RESOURCE_DESC::Buffer(size); 	// ãƒªã‚½ãƒ¼ã‚¹ã®è¨­å®š
 
-	// ƒŠƒ\[ƒX‚ð¶¬
+	// ãƒªã‚½ãƒ¼ã‚¹ã‚’ç”Ÿæˆ
 	auto hr = DIRECT3D.Device().CreateCommittedResource(
 		&prop,
 		D3D12_HEAP_FLAG_NONE,
@@ -18,30 +18,30 @@ VertexBuffer::VertexBuffer(size_t size, size_t stride, const void* pInitData)
 
 	if (FAILED(hr))
 	{
-		printf("’¸“_ƒoƒbƒtƒ@ƒŠƒ\[ƒX‚Ì¶¬‚ÉŽ¸”s");
+		printf("é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ãƒªã‚½ãƒ¼ã‚¹ã®ç”Ÿæˆã«å¤±æ•—");
 		return;
 	}
 
-	// ’¸“_ƒoƒbƒtƒ@ƒrƒ…[‚ÌÝ’è
+	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ãƒ“ãƒ¥ãƒ¼ã®è¨­å®š
 	_view.BufferLocation = _buffer->GetGPUVirtualAddress();
 	_view.SizeInBytes = static_cast<UINT>(size);
 	_view.StrideInBytes = static_cast<UINT>(stride);
 
-	// ƒ}ƒbƒsƒ“ƒO‚·‚é
+	// ãƒžãƒƒãƒ”ãƒ³ã‚°ã™ã‚‹
 	if (pInitData != nullptr)
 	{
 		void* ptr = nullptr;
 		hr = _buffer->Map(0, nullptr, &ptr);
 		if (FAILED(hr))
 		{
-			printf("’¸“_ƒoƒbƒtƒ@ƒ}ƒbƒsƒ“ƒO‚ÉŽ¸”s");
+			printf("é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ãƒžãƒƒãƒ”ãƒ³ã‚°ã«å¤±æ•—");
 			return;
 		}
 
-		// ’¸“_ƒf[ƒ^‚ðƒ}ƒbƒsƒ“ƒOæ‚ÉÝ’è
+		// é ‚ç‚¹ãƒ‡ãƒ¼ã‚¿ã‚’ãƒžãƒƒãƒ”ãƒ³ã‚°å…ˆã«è¨­å®š
 		memcpy(ptr, pInitData, size);
 
-		// ƒ}ƒbƒsƒ“ƒO‰ðœ
+		// ãƒžãƒƒãƒ”ãƒ³ã‚°è§£é™¤
 		_buffer->Unmap(0, nullptr);
 	}
 

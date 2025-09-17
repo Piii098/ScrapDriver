@@ -1,25 +1,25 @@
-#pragma once
+ï»¿#pragma once
 #include "DirectX/DirectX.h"
 #include <string.h>
 
 class PipelineState
 {
 public:
-	PipelineState(); // ƒRƒ“ƒXƒgƒ‰ƒNƒ^‚Å‚ ‚é’ö“x‚Ìİ’è‚ğ‚·‚é
-	bool IsValid(); // ¶¬‚É¬Œ÷‚µ‚½‚©‚Ç‚¤‚©‚ğ•Ô‚·
+	PipelineState(); // ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã§ã‚ã‚‹ç¨‹åº¦ã®è¨­å®šã‚’ã™ã‚‹
+	bool IsValid(); // ç”Ÿæˆã«æˆåŠŸã—ãŸã‹ã©ã†ã‹ã‚’è¿”ã™
 
-	void SetInputLayout(D3D12_INPUT_LAYOUT_DESC  layout); // “ü—ÍƒŒƒCƒAƒEƒg‚ğİ’è
-	void SetRootSignature(ID3D12RootSignature* rootSignature); // ƒ‹[ƒgƒVƒOƒlƒ`ƒƒ‚ğİ’è
-	void SetVS(std::wstring filePath); // ’¸“_ƒVƒF[ƒ_[‚ğİ’è
-	void SetPS(std::wstring filePath); // ƒsƒNƒZƒ‹ƒVƒF[ƒ_[‚ğİ’è
-	void Create(); // ƒpƒCƒvƒ‰ƒCƒ“ƒXƒe[ƒg‚ğ¶¬
+	void SetInputLayout(D3D12_INPUT_LAYOUT_DESC  layout); // å…¥åŠ›ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆã‚’è¨­å®š
+	void SetRootSignature(ID3D12RootSignature* rootSignature); // ãƒ«ãƒ¼ãƒˆã‚·ã‚°ãƒãƒãƒ£ã‚’è¨­å®š
+	void SetVS(std::wstring filePath); // é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’è¨­å®š
+	void SetPS(std::wstring filePath); // ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’è¨­å®š
+	void Create(); // ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã‚¹ãƒ†ãƒ¼ãƒˆã‚’ç”Ÿæˆ
 
 	ID3D12PipelineState* Get();
 
 private:
-	bool _isValid = false; // ¶¬‚É¬Œ÷‚µ‚½‚©‚Ç‚¤‚©
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc = {}; // ƒpƒCƒvƒ‰ƒCƒ“ƒXƒe[ƒg‚Ìİ’è
-	ComPtr<ID3D12PipelineState> _pipelineState = nullptr; // ƒpƒCƒvƒ‰ƒCƒ“ƒXƒe[ƒg
-	ComPtr<ID3DBlob> _vsBlob; // ’¸“_ƒVƒF[ƒ_[
-	ComPtr<ID3DBlob> _psBlob; // ƒsƒNƒZƒ‹ƒVƒF[ƒ_[
+	bool _isValid = false; // ç”Ÿæˆã«æˆåŠŸã—ãŸã‹ã©ã†ã‹
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc = {}; // ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã‚¹ãƒ†ãƒ¼ãƒˆã®è¨­å®š
+	ComPtr<ID3D12PipelineState> _pipelineState = nullptr; // ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã‚¹ãƒ†ãƒ¼ãƒˆ
+	ComPtr<ID3DBlob> _vsBlob; // é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼
+	ComPtr<ID3DBlob> _psBlob; // ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼
 };

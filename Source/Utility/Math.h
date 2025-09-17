@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #include <DirectXMath.h>
@@ -122,6 +122,10 @@ namespace Math {
 
 };
 using namespace DirectX;
+
+struct Vector3;
+struct Quaternion;
+struct Matrix4x4;
 
 struct Vector2 : public XMFLOAT2 {
 	Vector2() = default;
@@ -261,6 +265,141 @@ struct Vector4 : public XMFLOAT4
 	static const Vector4 Backward;
 };
 
+struct Quaternion : public XMFLOAT4
+{
+	Quaternion() = default;
+	Quaternion(float x, float y, float z, float w)
+	{
+		this->x = x; this->y = y; this->z = z; this->w = w;
+	}
+	
+	// コンストラクタ
+	Quaternion(const XMVECTOR& other) : XMFLOAT4() {
+		XMVECTOR temp = other;
+		XMStoreFloat4(this, temp);
+	}
+	
+	// 代入演算子
+	Quaternion& operator=(const XMVECTOR& other) {
+		XMVECTOR temp = other;
+		XMStoreFloat4(this, temp);
+		return *this;
+	}
+	
+	// XMVECTORへのキャスト
+	operator XMVECTOR() const {
+		return XMLoadFloat4(reinterpret_cast<const XMFLOAT4*>(this));
+	}
+	
+	// クォータニオンの正規化
+	void Normalize() {
+		*this = XMQuaternionNormalize(XMVECTOR(*this));
+	}
+	
+	// 正規化されたクォータニオンを取得
+	Quaternion GetNormalized() const {
+		return Quaternion(XMQuaternionNormalize(XMVECTOR(*this)));
+	}
+	
+	// 共役クォータニオン
+	Quaternion Conjugate() const {
+		return Quaternion(XMQuaternionConjugate(XMVECTOR(*this)));
+	}
+	
+	// 逆クォータニオン
+	Quaternion Inverse() const {
+		return Quaternion(XMQuaternionInverse(XMVECTOR(*this)));
+	}
+	
+	// 長さ
+	float Length() const {
+		return XMVectorGetX(XMQuaternionLength(XMVECTOR(*this)));
+	}
+	
+	// 長さの二乗
+	float LengthSquared() const {
+		return XMVectorGetX(XMQuaternionLengthSq(XMVECTOR(*this)));
+	}
+	
+	// 内積
+	float Dot(const Quaternion& other) const {
+		return XMVectorGetX(XMQuaternionDot(XMVECTOR(*this), XMVECTOR(other)));
+	}
+	
+	// 球面線形補間
+	static Quaternion Slerp(const Quaternion& q1, const Quaternion& q2, float t) {
+		return Quaternion(XMQuaternionSlerp(XMVECTOR(q1), XMVECTOR(q2), t));
+	}
+	
+	// オイラー角からクォータニオンを作成（ラジアン）
+	static Quaternion FromEuler(float pitch, float yaw, float roll) {
+		return Quaternion(XMQuaternionRotationRollPitchYaw(pitch, yaw, roll));
+	}
+	
+	// オイラー角からクォータニオンを作成（Vector3）
+	static Quaternion FromEuler(const Vector3& euler) {
+		return FromEuler(euler.x, euler.y, euler.z);
+	}
+	
+	// 軸と角度からクォータニオンを作成
+	static Quaternion FromAxisAngle(const Vector3& axis, float angle) {
+		return Quaternion(XMQuaternionRotationAxis(XMVECTOR(axis), angle));
+	}
+	//
+	//static Quaternion FromMatrix(const Matrix4x4& matrix) {
+	//	// Matrix4x4は既にXMMATRIXを継承しているので、そのまま渡せる
+	//	return Quaternion(XMQuaternionRotationMatrix(matrix));
+	//}
+
+	//Matrix4x4 ToMatrix() const {
+	//	// operator XMVECTOR()を明示的に呼び出し
+	//	return Matrix4x4(XMMatrixRotationQuaternion(this->operator XMVECTOR()));
+	//}
+	//
+	// オイラー角に変換（ラジアン）
+	Vector3 ToEuler() const {
+		XMVECTOR q = XMVECTOR(*this);
+		
+		// クォータニオンからオイラー角への変換
+		float sinr_cosp = 2 * (w * x + y * z);
+		float cosr_cosp = 1 - 2 * (x * x + y * y);
+		float roll = atan2f(sinr_cosp, cosr_cosp);
+		
+		float sinp = 2 * (w * y - z * x);
+		float pitch;
+		if (fabsf(sinp) >= 1)
+			pitch = copysignf(XM_PI / 2, sinp);
+		else
+			pitch = asinf(sinp);
+		
+		float siny_cosp = 2 * (w * z + x * y);
+		float cosy_cosp = 1 - 2 * (y * y + z * z);
+		float yaw = atan2f(siny_cosp, cosy_cosp);
+		
+		return Vector3(pitch, yaw, roll);
+	}
+	
+	// 乗算演算子（クォータニオンの合成）
+	Quaternion operator*(const Quaternion& other) const {
+		return Quaternion(XMQuaternionMultiply(XMVECTOR(*this), XMVECTOR(other)));
+	}
+	
+	Quaternion& operator*=(const Quaternion& other) {
+		*this = XMQuaternionMultiply(XMVECTOR(*this), XMVECTOR(other));
+		return *this;
+	}
+	
+	// 比較演算子
+	bool operator==(const Quaternion& other) const {
+		return XMQuaternionEqual(XMVECTOR(*this), XMVECTOR(other));
+	}
+	
+	bool operator!=(const Quaternion& other) const {
+		return !XMQuaternionEqual(XMVECTOR(*this), XMVECTOR(other));
+	}
+	
+	static const Quaternion Identity;
+};
 
 struct Matrix4x4 : public XMMATRIX
 {
@@ -270,7 +409,7 @@ struct Matrix4x4 : public XMMATRIX
 	}
 	Matrix4x4(const XMMATRIX& other) :XMMATRIX(other) {}
 	Matrix4x4(const Matrix4x4& other) :XMMATRIX(other) {}
-	
+
 	// コピー代入演算子
 	Matrix4x4& operator=(const XMMATRIX& other) {
 		XMMATRIX::operator=(other);
@@ -280,13 +419,18 @@ struct Matrix4x4 : public XMMATRIX
 		XMMATRIX::operator=(other);
 		return *this;
 	}
-	
+
 	//XMFLOAT4X4への変換代入
-	XMFLOAT4X4& operator=(const XMFLOAT4X4& other) {
+	Matrix4x4& operator=(const XMFLOAT4X4& other) {
 		*this = XMLoadFloat4x4(&other);
-		return *reinterpret_cast<XMFLOAT4X4*>(this);
+		return *this;
 	}
-	
+
+	Matrix4x4& operator*=(const XMMATRIX& other) {
+		*this = XMMatrixMultiply(*this, other);
+		return *this;
+	}
+
 	//XMFLOAT4X4へのキャスト
 	operator XMFLOAT4X4() const {
 		XMFLOAT4X4 f4_4;
@@ -306,7 +450,20 @@ struct Matrix4x4 : public XMMATRIX
 		*this = XMLoadFloat4x4(other);
 	}
 
+	static Matrix4x4 CreateScale(const Vector3& scale) {
+		return Matrix4x4(XMMatrixScaling(scale.x, scale.y, scale.z));
+	}
+
+	static Matrix4x4 CreateFromQuaternion(const Quaternion& q) {
+		return Matrix4x4(XMMatrixRotationQuaternion(XMVECTOR(q)));
+	}
+
+	static Matrix4x4 CreateTranslation(const Vector3& position) {
+		return Matrix4x4(XMMatrixTranslation(position.x, position.y, position.z));
+	}
+
+
 	static const Matrix4x4 Identity;
 	static const Matrix4x4 Zero;
-	
+
 };

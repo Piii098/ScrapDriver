@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "DirectX/DirectX.h"
 
 class IndexBuffer
@@ -10,8 +10,8 @@ public:
 
 private:
 	bool _isValid = false;
-	ComPtr<ID3D12Resource> _buffer; // ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@
-	D3D12_INDEX_BUFFER_VIEW _view; // ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@ƒrƒ…[
+	ComPtr<ID3D12Resource> _buffer; // ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡
+	D3D12_INDEX_BUFFER_VIEW _view; // ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ãƒ“ãƒ¥ãƒ¼
 
 	IndexBuffer(const IndexBuffer&) = delete;
 	void operator = (const IndexBuffer&) = delete;

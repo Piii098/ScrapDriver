@@ -1,18 +1,18 @@
-#include "DirectX/PipelineState.h"
+ï»¿#include "DirectX/PipelineState.h"
 
 PipelineState::PipelineState()
 {
-	// ƒpƒCƒvƒ‰ƒCƒ“ƒXƒe[ƒg‚Ìİ’è
-	_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT); // ƒ‰ƒXƒ^ƒ‰ƒCƒU[‚ÍƒfƒtƒHƒ‹ƒg
-	_desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE; // ƒJƒŠƒ“ƒO‚Í‚È‚µ
-	_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT); // ƒuƒŒƒ“ƒhƒXƒe[ƒg‚àƒfƒtƒHƒ‹ƒg
-	_desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT); // [“xƒXƒeƒ“ƒVƒ‹‚ÍƒfƒtƒHƒ‹ƒg‚ğg‚¤
+	// ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã‚¹ãƒ†ãƒ¼ãƒˆã®è¨­å®š
+	_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT); // ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶ãƒ¼ã¯ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ
+	_desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE; // ã‚«ãƒªãƒ³ã‚°ã¯ãªã—
+	_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT); // ãƒ–ãƒ¬ãƒ³ãƒ‰ã‚¹ãƒ†ãƒ¼ãƒˆã‚‚ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ
+	_desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT); // æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ã¯ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã‚’ä½¿ã†
 	_desc.SampleMask = UINT_MAX;
-	_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE; // OŠpŒ`‚ğ•`‰æ
-	_desc.NumRenderTargets = 1; // •`‰æ‘ÎÛ‚Í1
+	_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE; // ä¸‰è§’å½¢ã‚’æç”»
+	_desc.NumRenderTargets = 1; // æç”»å¯¾è±¡ã¯1
 	_desc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 	_desc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-	_desc.SampleDesc.Count = 1; // ƒTƒ“ƒvƒ‰[‚Í1
+	_desc.SampleDesc.Count = 1; // ã‚µãƒ³ãƒ—ãƒ©ãƒ¼ã¯1
 	_desc.SampleDesc.Quality = 0;
 }
 
@@ -33,11 +33,11 @@ void PipelineState::SetRootSignature(ID3D12RootSignature* rootSignature)
 
 void PipelineState::SetVS(std::wstring filePath)
 {
-	// ’¸“_ƒVƒF[ƒ_[“Ç‚İ‚İ
+	// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼èª­ã¿è¾¼ã¿
 	auto hr = D3DReadFileToBlob(filePath.c_str(), _vsBlob.GetAddressOf());
 	if (FAILED(hr))
 	{
-		printf("’¸“_ƒVƒF[ƒ_[‚Ì“Ç‚İ‚İ‚É¸”s");
+		printf("é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã®èª­ã¿è¾¼ã¿ã«å¤±æ•—");
 		return;
 	}
 
@@ -46,11 +46,11 @@ void PipelineState::SetVS(std::wstring filePath)
 
 void PipelineState::SetPS(std::wstring filePath)
 {
-	// ƒsƒNƒZƒ‹ƒVƒF[ƒ_[“Ç‚İ‚İ
+	// ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼èª­ã¿è¾¼ã¿
 	auto hr = D3DReadFileToBlob(filePath.c_str(), _psBlob.GetAddressOf());
 	if (FAILED(hr))
 	{
-		printf("ƒsƒNƒZƒ‹ƒVƒF[ƒ_[‚Ì“Ç‚İ‚İ‚É¸”s");
+		printf("ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã®èª­ã¿è¾¼ã¿ã«å¤±æ•—");
 		return;
 	}
 
@@ -59,11 +59,11 @@ void PipelineState::SetPS(std::wstring filePath)
 
 void PipelineState::Create()
 {
-	// ƒpƒCƒvƒ‰ƒCƒ“ƒXƒe[ƒg‚ğ¶¬
+	// ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã‚¹ãƒ†ãƒ¼ãƒˆã‚’ç”Ÿæˆ
 	auto hr = DIRECT3D.Device().CreateGraphicsPipelineState(&_desc, IID_PPV_ARGS(_pipelineState.ReleaseAndGetAddressOf()));
 	if (FAILED(hr))
 	{
-		printf("ƒpƒCƒvƒ‰ƒCƒ“ƒXƒe[ƒg‚Ì¶¬‚É¸”s");
+		printf("ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã‚¹ãƒ†ãƒ¼ãƒˆã®ç”Ÿæˆã«å¤±æ•—");
 		return;
 	}
 

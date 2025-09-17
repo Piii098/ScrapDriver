@@ -1,4 +1,4 @@
-#include "DirectX/Texture2D.h"
+﻿#include "DirectX/Texture2D.h"
 
 
 // std::string(マルチバイト文字列)からstd::wstring(ワイド文字列)を得る。AssimpLoaderと同じものだけど、共用にするのがめんどくさかったので許してください

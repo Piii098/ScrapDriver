@@ -92,6 +92,7 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Source\Core\Component.cpp" />
+    <ClCompile Include="Source\LevelLoader\LevelLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\Game.h">
@@ -161,6 +162,7 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Source\Core\Component.h" />
+    <ClInclude Include="Source\LevelLoader\LevelLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

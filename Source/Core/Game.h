@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <SDL3/SDL.h>
 
 class Game {
@@ -16,7 +16,6 @@ public:
 
 private:
 
-	class Scene* _scene;
 	class RendererManager* _rendererManager;
 	class InputManager* _inputManager;
 	class InputAction* _inputAction;

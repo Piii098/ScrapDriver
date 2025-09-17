@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <vector>
 #include <string>
 #include <SDL3/SDL_scancode.h>
@@ -7,57 +7,57 @@
 #include "Framework.h"
 #include "Input/InputAction.h"
 
-/// @brief ƒ{ƒ^ƒ“‚Ìó‘Ô
+/// @brief ãƒœã‚¿ãƒ³ã®çŠ¶æ…‹
 enum class BUTTON_STATE {
-	NONE, ///< ‰½‚à‰Ÿ‚³‚ê‚Ä‚¢‚È‚¢
-	DOWN, ///< ‰Ÿ‚³‚ê‚½uŠÔ
-	UP,   ///< —£‚³‚ê‚½uŠÔ
-	PRESS ///< ‰Ÿ‚µ‘±‚¯‚Ä‚¢‚é
+	NONE, ///< ä½•ã‚‚æŠ¼ã•ã‚Œã¦ã„ãªã„
+	DOWN, ///< æŠ¼ã•ã‚ŒãŸç¬é–“
+	UP,   ///< é›¢ã•ã‚ŒãŸç¬é–“
+	PRESS ///< æŠ¼ã—ç¶šã‘ã¦ã„ã‚‹
 };
 
 
-/// @brief ƒL[ƒ{[ƒh‚Ìó‘Ô
-/// ƒL[ƒ{[ƒh‚Ìó‘Ô‚ğŠÇ—‚µAInputManager‚É‚æ‚Á‚Äg—p‚³‚ê‚é
+/// @brief ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã®çŠ¶æ…‹
+/// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã®çŠ¶æ…‹ã‚’ç®¡ç†ã—ã€InputManagerã«ã‚ˆã£ã¦ä½¿ç”¨ã•ã‚Œã‚‹
 class KeyboardState {
 public:
-	// ƒtƒŒƒ“ƒhéŒ¾
+	// ãƒ•ãƒ¬ãƒ³ãƒ‰å®£è¨€
 	friend class InputManager;
 
-	// ===== ƒƒ“ƒoŠÖ” ===== 
+	// ===== ãƒ¡ãƒ³ãƒé–¢æ•° ===== 
 
-	/// @brief ƒL[‚Ìó‘Ô‚ğæ“¾‚·‚é
-	/// @param key ƒL[ƒR[ƒh
-	/// @return ƒL[‚Ìó‘Ô
+	/// @brief ã‚­ãƒ¼ã®çŠ¶æ…‹ã‚’å–å¾—ã™ã‚‹
+	/// @param key ã‚­ãƒ¼ã‚³ãƒ¼ãƒ‰
+	/// @return ã‚­ãƒ¼ã®çŠ¶æ…‹
 	BUTTON_STATE GetKeyState(SDL_Scancode key) const;
 
 	bool IsAllKey() const;
 
-	/// @brief ƒL[‚Ìó‘Ô‚ğXV‚·‚é
-	/// @param key ƒL[ƒR[ƒh
-	/// @param isDown ƒL[‚ª‰Ÿ‚³‚ê‚Ä‚¢‚é‚©‚Ç‚¤‚©
+	/// @brief ã‚­ãƒ¼ã®çŠ¶æ…‹ã‚’æ›´æ–°ã™ã‚‹
+	/// @param key ã‚­ãƒ¼ã‚³ãƒ¼ãƒ‰
+	/// @param isDown ã‚­ãƒ¼ãŒæŠ¼ã•ã‚Œã¦ã„ã‚‹ã‹ã©ã†ã‹
 	void UpdateKeyState(SDL_Scancode key, bool isDown);
 
 private:
-	bool _currentKeyState[SDL_SCANCODE_COUNT];	///< Œ»İ‚ÌƒL[‚Ìó‘Ô
-	bool _previousKeyState[SDL_SCANCODE_COUNT];	///< 1ƒtƒŒ[ƒ€‘O‚ÌƒL[‚Ìó‘Ô
+	bool _currentKeyState[SDL_SCANCODE_COUNT];	///< ç¾åœ¨ã®ã‚­ãƒ¼ã®çŠ¶æ…‹
+	bool _previousKeyState[SDL_SCANCODE_COUNT];	///< 1ãƒ•ãƒ¬ãƒ¼ãƒ å‰ã®ã‚­ãƒ¼ã®çŠ¶æ…‹
 };
 
-/// @brief ƒ}ƒEƒX‚Ìó‘Ô
-/// ƒ}ƒEƒX‚Ìó‘Ô‚ğŠÇ—‚µAInputManager‚É‚æ‚Á‚Äg—p‚³‚ê‚é
+/// @brief ãƒã‚¦ã‚¹ã®çŠ¶æ…‹
+/// ãƒã‚¦ã‚¹ã®çŠ¶æ…‹ã‚’ç®¡ç†ã—ã€InputManagerã«ã‚ˆã£ã¦ä½¿ç”¨ã•ã‚Œã‚‹
 class MouseState {
 public:
-	// ƒtƒŒƒ“ƒhéŒ¾
+	// ãƒ•ãƒ¬ãƒ³ãƒ‰å®£è¨€
 	friend class InputManager;
 
-	// ===== ƒƒ“ƒoŠÖ” ===== //
+	// ===== ãƒ¡ãƒ³ãƒé–¢æ•° ===== //
 
-	/// @brief ƒ}ƒEƒX‚ÌÀ•W‚ğæ“¾‚·‚é
-	/// @return ƒ}ƒEƒX‚ÌÀ•W
+	/// @brief ãƒã‚¦ã‚¹ã®åº§æ¨™ã‚’å–å¾—ã™ã‚‹
+	/// @return ãƒã‚¦ã‚¹ã®åº§æ¨™
 	const Vector2& GetPosition() const { return _position; }
 
-	/// @brief ƒ}ƒEƒX‚Ìƒ{ƒ^ƒ“‚Ìó‘Ô‚ğæ“¾‚·‚é
-	/// @param button ƒ}ƒEƒXƒ{ƒ^ƒ“
-	/// @return ƒ{ƒ^ƒ“‚Ìó‘Ô
+	/// @brief ãƒã‚¦ã‚¹ã®ãƒœã‚¿ãƒ³ã®çŠ¶æ…‹ã‚’å–å¾—ã™ã‚‹
+	/// @param button ãƒã‚¦ã‚¹ãƒœã‚¿ãƒ³
+	/// @return ãƒœã‚¿ãƒ³ã®çŠ¶æ…‹
 	BUTTON_STATE GetButtonState(SDL_MouseButton button) const;
 
 	//bool IsAllButton() const;
@@ -66,39 +66,39 @@ public:
 	void IsRelative(bool flag) { _isRelative = flag; }
 
 private:
-	Vector2 _position;			///< ƒ}ƒEƒX‚ÌÀ•W
-	Vector2 _wheel;				///< ƒ}ƒEƒX‚ÌƒzƒC[ƒ‹
-	Uint32 _currentButtons;		///< Œ»İ‚Ìƒ{ƒ^ƒ“‚Ìó‘Ô
-	Uint32 _previousButtons;	///< 1ƒtƒŒ[ƒ€‘O‚Ìƒ{ƒ^ƒ“‚Ìó‘Ô
-	bool _isRelative;			///< ‘Š‘ÎÀ•W‚©‚Ç‚¤‚©
+	Vector2 _position;			///< ãƒã‚¦ã‚¹ã®åº§æ¨™
+	Vector2 _wheel;				///< ãƒã‚¦ã‚¹ã®ãƒ›ã‚¤ãƒ¼ãƒ«
+	Uint32 _currentButtons;		///< ç¾åœ¨ã®ãƒœã‚¿ãƒ³ã®çŠ¶æ…‹
+	Uint32 _previousButtons;	///< 1ãƒ•ãƒ¬ãƒ¼ãƒ å‰ã®ãƒœã‚¿ãƒ³ã®çŠ¶æ…‹
+	bool _isRelative;			///< ç›¸å¯¾åº§æ¨™ã‹ã©ã†ã‹
 };
 
 
 
-/// @brief ƒQ[ƒ€ƒpƒbƒh‚Ìó‘Ô
-/// ƒQ[ƒ€ƒpƒbƒh‚Ìó‘Ô‚ğŠÇ—‚µAInputManager‚É‚æ‚Á‚Äg—p‚³‚ê‚é
+/// @brief ã‚²ãƒ¼ãƒ ãƒ‘ãƒƒãƒ‰ã®çŠ¶æ…‹
+/// ã‚²ãƒ¼ãƒ ãƒ‘ãƒƒãƒ‰ã®çŠ¶æ…‹ã‚’ç®¡ç†ã—ã€InputManagerã«ã‚ˆã£ã¦ä½¿ç”¨ã•ã‚Œã‚‹
 class GamepadState {
 public:
-	// ƒtƒŒƒ“ƒhéŒ¾
+	// ãƒ•ãƒ¬ãƒ³ãƒ‰å®£è¨€
 	friend class InputManager;
 
-	// ===== ƒƒ“ƒoŠÖ” ===== //
+	// ===== ãƒ¡ãƒ³ãƒé–¢æ•° ===== //
 
-	/// @brief ƒ{ƒ^ƒ“‚Ìó‘Ô‚ğæ“¾‚·‚é
-	/// @param button ƒ{ƒ^ƒ“
-	/// @return ƒ{ƒ^ƒ“‚Ìó‘Ô
+	/// @brief ãƒœã‚¿ãƒ³ã®çŠ¶æ…‹ã‚’å–å¾—ã™ã‚‹
+	/// @param button ãƒœã‚¿ãƒ³
+	/// @return ãƒœã‚¿ãƒ³ã®çŠ¶æ…‹
 	BUTTON_STATE GetButtonState(SDL_GamepadButton button) const;
 
 	bool IsAllButton() const;
 
 	bool GetIsConnected() const { return _isConnected; }
 
-	/// @brief ƒgƒŠƒK[AƒXƒeƒBƒbƒN‚Ì1ŸŒ³²‚Ì’l‚ğæ“¾‚·‚é
-	/// @param axis ƒQ[ƒ€ƒpƒbƒh‚Ì²
+	/// @brief ãƒˆãƒªã‚¬ãƒ¼ã€ã‚¹ãƒ†ã‚£ãƒƒã‚¯ã®1æ¬¡å…ƒè»¸ã®å€¤ã‚’å–å¾—ã™ã‚‹
+	/// @param axis ã‚²ãƒ¼ãƒ ãƒ‘ãƒƒãƒ‰ã®è»¸
 	float GetAxis(SDL_GamepadAxis axis) const;
 
-	/// @brief ƒXƒeƒBƒbƒN‚Ì2ŸŒ³²‚Ì’l‚ğæ“¾‚·‚é
-	/// @param stick ƒQ[ƒ€ƒpƒbƒh‚ÌƒXƒeƒBƒbƒN
+	/// @brief ã‚¹ãƒ†ã‚£ãƒƒã‚¯ã®2æ¬¡å…ƒè»¸ã®å€¤ã‚’å–å¾—ã™ã‚‹
+	/// @param stick ã‚²ãƒ¼ãƒ ãƒ‘ãƒƒãƒ‰ã®ã‚¹ãƒ†ã‚£ãƒƒã‚¯
 	Vector2 GetStickAxis(SDL_GamepadStick stick) const;
 
 private:
@@ -122,7 +122,7 @@ struct InputState {
 struct AxisMapping {
 	InputCode positive;
 	InputCode negative;
-	float value; ///< “ü—Í‚Ì’l
+	float value; ///< å…¥åŠ›ã®å€¤
 	float sensitivity;
 	float gravity;
 	float deadZone;
@@ -131,8 +131,8 @@ struct AxisMapping {
 	AxisMapping() : positive(InputCode()), negative(InputCode()), sensitivity(10.0f), gravity(10.0f), deadZone(0.0f), snap(false), value(0.f) {}
 };
 
-/// @brief “ü—ÍƒVƒXƒeƒ€
-/// ƒL[ƒ{[ƒhAƒ}ƒEƒXAƒQ[ƒ€ƒpƒbƒh‚Ì“ü—Í‚ğŠÇ—AXV‚·‚é
+/// @brief å…¥åŠ›ã‚·ã‚¹ãƒ†ãƒ 
+/// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã€ãƒã‚¦ã‚¹ã€ã‚²ãƒ¼ãƒ ãƒ‘ãƒƒãƒ‰ã®å…¥åŠ›ã‚’ç®¡ç†ã€æ›´æ–°ã™ã‚‹
 class InputManager {
 public:
 
@@ -162,10 +162,10 @@ private:
 	float Filter1D(int input);
 	Vector2 Filter2D(int inputX, int inputY);
 
-	std::unordered_map<std::string, AxisMapping> _axisMap;	///< ƒAƒNƒVƒ‡ƒ“ƒ}ƒbƒv
+	std::unordered_map<std::string, AxisMapping> _axisMap;	///< ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ãƒãƒƒãƒ—
 	Game& _game;
 	SDL_Window* _window;
-	InputState _state; // “ü—Íó‘Ô
+	InputState _state; // å…¥åŠ›çŠ¶æ…‹
 	SDL_Gamepad* _gamepad;
 
 };

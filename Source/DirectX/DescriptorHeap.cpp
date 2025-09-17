@@ -1,4 +1,4 @@
-#include "DirectX/DescriptorHeap.h"
+ï»¿#include "DirectX/DescriptorHeap.h"
 #include "DirectX/Texture2D.h"
 #include <d3dx12.h>
 
@@ -17,7 +17,7 @@ DescriptorHeap::DescriptorHeap()
 
 	auto& device = DIRECT3D.Device();
 
-	// ƒfƒBƒXƒNƒŠƒvƒ^ƒq[ƒv‚ğ¶¬
+	// ãƒ‡ã‚£ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ’ãƒ¼ãƒ—ã‚’ç”Ÿæˆ
 	auto hr = device.CreateDescriptorHeap(
 		&desc,
 		IID_PPV_ARGS(_heap.ReleaseAndGetAddressOf()));
@@ -28,7 +28,7 @@ DescriptorHeap::DescriptorHeap()
 		return;
 	}
 
-	_incrementSize = device.GetDescriptorHandleIncrementSize(desc.Type); // ƒfƒBƒXƒNƒŠƒvƒ^ƒq[ƒv1ŒÂ‚Ìƒƒ‚ƒŠƒTƒCƒY‚ğ•Ô‚·
+	_incrementSize = device.GetDescriptorHandleIncrementSize(desc.Type); // ãƒ‡ã‚£ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ’ãƒ¼ãƒ—1å€‹ã®ãƒ¡ãƒ¢ãƒªã‚µã‚¤ã‚ºã‚’è¿”ã™
 	_isValid = true;
 }
 
@@ -47,11 +47,11 @@ DescriptorHandle* DescriptorHeap::Register(Texture2D* texture)
 
 	DescriptorHandle* pHandle = new DescriptorHandle();
 
-	auto handleCPU = _heap->GetCPUDescriptorHandleForHeapStart(); // ƒfƒBƒXƒNƒŠƒvƒ^ƒq[ƒv‚ÌÅ‰‚ÌƒAƒhƒŒƒX
-	handleCPU.ptr += _incrementSize * count; // Å‰‚ÌƒAƒhƒŒƒX‚©‚çcount”Ô–Ú‚ª¡‰ñ’Ç‰Á‚³‚ê‚½ƒŠƒ\[ƒX‚Ìƒnƒ“ƒhƒ‹
+	auto handleCPU = _heap->GetCPUDescriptorHandleForHeapStart(); // ãƒ‡ã‚£ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ’ãƒ¼ãƒ—ã®æœ€åˆã®ã‚¢ãƒ‰ãƒ¬ã‚¹
+	handleCPU.ptr += _incrementSize * count; // æœ€åˆã®ã‚¢ãƒ‰ãƒ¬ã‚¹ã‹ã‚‰countç•ªç›®ãŒä»Šå›è¿½åŠ ã•ã‚ŒãŸãƒªã‚½ãƒ¼ã‚¹ã®ãƒãƒ³ãƒ‰ãƒ«
 
-	auto handleGPU = _heap->GetGPUDescriptorHandleForHeapStart(); // ƒfƒBƒXƒNƒŠƒvƒ^ƒq[ƒv‚ÌÅ‰‚ÌƒAƒhƒŒƒX
-	handleGPU.ptr += _incrementSize * count; // Å‰‚ÌƒAƒhƒŒƒX‚©‚çcount”Ô–Ú‚ª¡‰ñ’Ç‰Á‚³‚ê‚½ƒŠƒ\[ƒX‚Ìƒnƒ“ƒhƒ‹
+	auto handleGPU = _heap->GetGPUDescriptorHandleForHeapStart(); // ãƒ‡ã‚£ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ’ãƒ¼ãƒ—ã®æœ€åˆã®ã‚¢ãƒ‰ãƒ¬ã‚¹
+	handleGPU.ptr += _incrementSize * count; // æœ€åˆã®ã‚¢ãƒ‰ãƒ¬ã‚¹ã‹ã‚‰countç•ªç›®ãŒä»Šå›è¿½åŠ ã•ã‚ŒãŸãƒªã‚½ãƒ¼ã‚¹ã®ãƒãƒ³ãƒ‰ãƒ«
 
 	pHandle->HandleCPU = handleCPU;
 	pHandle->HandleGPU = handleGPU;
@@ -59,8 +59,8 @@ DescriptorHandle* DescriptorHeap::Register(Texture2D* texture)
 	auto& device = DIRECT3D.Device();
 	auto resource = texture->Resource();
 	auto desc = texture->ViewDesc();
-	device.CreateShaderResourceView(resource, &desc, pHandle->HandleCPU); // ƒVƒF[ƒ_[ƒŠƒ\[ƒXƒrƒ…[ì¬
+	device.CreateShaderResourceView(resource, &desc, pHandle->HandleCPU); // ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ãƒªã‚½ãƒ¼ã‚¹ãƒ“ãƒ¥ãƒ¼ä½œæˆ
 
 	_handles.push_back(pHandle);
-	return pHandle; // ƒnƒ“ƒhƒ‹‚ğ•Ô‚·
+	return pHandle; // ãƒãƒ³ãƒ‰ãƒ«ã‚’è¿”ã™
 }

@@ -1,4 +1,4 @@
-#include <SDL3/SDL.h>
+ï»¿#include <SDL3/SDL.h>
 #include <algorithm>
 #include "Input/InputAction.h"
 #include "Input/InputManager.h"
@@ -25,7 +25,7 @@ InputAction::~InputAction()
 //
 //	const std::vector<InputCode>& codes = iter->second;
 //
-//	// ƒL[ƒ{[ƒh“ü—Í‚Ìƒ`ƒFƒbƒN
+//	// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰å…¥åŠ›ã®ãƒã‚§ãƒƒã‚¯
 //	for (const auto& code : codes) {
 //		if (std::holds_alternative<SDL_Scancode>(code) &&
 //			IsKey(std::get<SDL_Scancode>(code))) {
@@ -33,7 +33,7 @@ InputAction::~InputAction()
 //		}
 //	}
 //
-//	// ƒ}ƒEƒX“ü—Í‚Ìƒ`ƒFƒbƒN
+//	// ãƒã‚¦ã‚¹å…¥åŠ›ã®ãƒã‚§ãƒƒã‚¯
 //	for (const auto& code : codes) {
 //		if (std::holds_alternative<SDL_MouseButton>(code) &&
 //			IsMouseButton(std::get<SDL_MouseButton>(code))) {
@@ -41,7 +41,7 @@ InputAction::~InputAction()
 //		}
 //	}
 //
-//	// ƒQ[ƒ€ƒpƒbƒh“ü—Í‚Ìƒ`ƒFƒbƒN
+//	// ã‚²ãƒ¼ãƒ ãƒ‘ãƒƒãƒ‰å…¥åŠ›ã®ãƒã‚§ãƒƒã‚¯
 //	for (const auto& code : codes) {
 //		if (std::holds_alternative<SDL_GamepadButton>(code) &&
 //			IsGamepadButton(std::get<SDL_GamepadButton>(code))) {
@@ -69,7 +69,7 @@ InputAction::~InputAction()
 //
 //	const std::vector<InputCode>& codes = iter->second;
 //
-//	// ƒL[ƒ{[ƒh“ü—Í‚Ìƒ`ƒFƒbƒN
+//	// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰å…¥åŠ›ã®ãƒã‚§ãƒƒã‚¯
 //	for (const auto& code : codes) {
 //		if (std::holds_alternative<SDL_Scancode>(code) &&
 //			IsKeyDown(std::get<SDL_Scancode>(code))) {
@@ -77,7 +77,7 @@ InputAction::~InputAction()
 //		}
 //	}
 //
-//	// ƒ}ƒEƒX“ü—Í‚Ìƒ`ƒFƒbƒN
+//	// ãƒã‚¦ã‚¹å…¥åŠ›ã®ãƒã‚§ãƒƒã‚¯
 //	for (const auto& code : codes) {
 //		if (std::holds_alternative<SDL_MouseButton>(code) &&
 //			IsMouseButtonDown(std::get<SDL_MouseButton>(code))) {
@@ -85,7 +85,7 @@ InputAction::~InputAction()
 //		}
 //	}
 //
-//	// ƒQ[ƒ€ƒpƒbƒh“ü—Í‚Ìƒ`ƒFƒbƒN
+//	// ã‚²ãƒ¼ãƒ ãƒ‘ãƒƒãƒ‰å…¥åŠ›ã®ãƒã‚§ãƒƒã‚¯
 //	for (const auto& code : codes) {
 //		if (std::holds_alternative<SDL_GamepadButton>(code) &&
 //			IsGamepadButtonDown(std::get<SDL_GamepadButton>(code))) {
@@ -97,7 +97,7 @@ InputAction::~InputAction()
 //}
 //
 //bool InputAction::IsActionUp(const std::string& name, int player) const {
-//	// À‘•‚ğ’Ç‰Á
+//	// å®Ÿè£…ã‚’è¿½åŠ 
 //	return false;
 //}
 //
@@ -127,11 +127,11 @@ InputAction::~InputAction()
 //}
 //
 //Vector2 InputAction::GetActionVector(const std::string& name, int player) const {
-//	// À‘•‚ğ’Ç‰Á
+//	// å®Ÿè£…ã‚’è¿½åŠ 
 //	return Vector2::Zero;
 //}
 //
-//// ƒL[ƒ{[ƒh“ü—Í
+//// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰å…¥åŠ›
 //bool InputAction::IsKeyDown(SDL_Scancode key) const {
 //	return _inputManager.GetState().keyboard.GetKeyState(key) == BUTTON_STATE::DOWN;
 //
@@ -150,7 +150,7 @@ InputAction::~InputAction()
 //	return _inputManager.GetState().keyboard.IsAllKey();
 //}
 //
-//// ƒ}ƒEƒX“ü—Í 
+//// ãƒã‚¦ã‚¹å…¥åŠ› 
 //bool InputAction::IsMouseButtonDown(SDL_MouseButton button) const {
 //	return _inputManager.GetState().mouse.GetButtonState(button) == BUTTON_STATE::DOWN;
 //}
@@ -174,7 +174,7 @@ InputAction::~InputAction()
 //	_inputManager.SetRelativeMouseMode(isRelative);
 //}
 //
-//// ƒQ[ƒ€ƒpƒbƒh“ü—Í 
+//// ã‚²ãƒ¼ãƒ ãƒ‘ãƒƒãƒ‰å…¥åŠ› 
 //bool InputAction::IsGamepadButtonDown(SDL_GamepadButton button) const {
 //	return _inputManager.GetState().gamepad.GetButtonState(button) == BUTTON_STATE::DOWN;
 //}

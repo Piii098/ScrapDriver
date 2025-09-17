@@ -1,4 +1,4 @@
-#include <memory.h>
+ï»¿#include <memory.h>
 #include <algorithm>
 #include "Input/InputManager.h"
 #include <SDL3/SDL.h>
@@ -37,7 +37,7 @@ void KeyboardState::UpdateKeyState(SDL_Scancode key, bool isDown) {
 
 }
 
-bool IsButtonDown(Uint32 state, Uint32 mask) { // ƒ}ƒEƒXƒ{ƒ^ƒ“‚ª‰Ÿ‚³‚ê‚Ä‚¢‚é‚©‚Ç‚¤‚©‚ğ”»’è‚·‚éŠÖ”
+bool IsButtonDown(Uint32 state, Uint32 mask) { // ãƒã‚¦ã‚¹ãƒœã‚¿ãƒ³ãŒæŠ¼ã•ã‚Œã¦ã„ã‚‹ã‹ã©ã†ã‹ã‚’åˆ¤å®šã™ã‚‹é–¢æ•°
 	return (state & mask) == mask;
 }
 
@@ -47,16 +47,16 @@ BUTTON_STATE MouseState::GetButtonState(SDL_MouseButton button) const {
 	bool isPreviousDown = IsButtonDown(_previousButtons, mask);
 
 	if (isCurrentDown && !isPreviousDown) {
-		return BUTTON_STATE::DOWN;      // ‰Ÿ‚³‚ê‚½uŠÔ
+		return BUTTON_STATE::DOWN;      // æŠ¼ã•ã‚ŒãŸç¬é–“
 	}
 	else if (!isCurrentDown && isPreviousDown) {
-		return BUTTON_STATE::UP;        // —£‚³‚ê‚½uŠÔ
+		return BUTTON_STATE::UP;        // é›¢ã•ã‚ŒãŸç¬é–“
 	}
 	else if (isCurrentDown && isPreviousDown) {
-		return BUTTON_STATE::PRESS;     // ‰Ÿ‚µ‘±‚¯‚Ä‚¢‚é
+		return BUTTON_STATE::PRESS;     // æŠ¼ã—ç¶šã‘ã¦ã„ã‚‹
 	}
 	else {
-		return BUTTON_STATE::NONE;      // ‰Ÿ‚³‚ê‚Ä‚¢‚È‚¢
+		return BUTTON_STATE::NONE;      // æŠ¼ã•ã‚Œã¦ã„ãªã„
 	}
 }
 
@@ -124,20 +124,20 @@ InputManager::~InputManager() {
 }
 
 bool InputManager::Initialize() {
-	// ƒL[ƒ{[ƒh‚Ìó‘Ô‚ğ‰Šú‰»
+	// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã®çŠ¶æ…‹ã‚’åˆæœŸåŒ–
 	const bool* keyboardState = SDL_GetKeyboardState(NULL);
 	memcpy(_state.keyboard._currentKeyState, keyboardState, SDL_SCANCODE_COUNT);
 	memset(_state.keyboard._previousKeyState, 0, SDL_SCANCODE_COUNT);
 
-	// ƒ}ƒEƒX‚Ìó‘Ô‚ğ‰Šú‰»
+	// ãƒã‚¦ã‚¹ã®çŠ¶æ…‹ã‚’åˆæœŸåŒ–
 	_state.mouse._currentButtons = 0;
 	_state.mouse._previousButtons = 0;
 
-	// ƒRƒ“ƒgƒ[ƒ‰‚Ìó‘Ô‚ğ‰Šú‰»
-	// ƒ}ƒbƒsƒ“ƒOƒtƒ@ƒCƒ‹‚ğ“Ç‚İ‚ŞiƒGƒ‰[‚Å‚à‘±sj
+	// ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ã®çŠ¶æ…‹ã‚’åˆæœŸåŒ–
+	// ãƒãƒƒãƒ”ãƒ³ã‚°ãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã¿è¾¼ã‚€ï¼ˆã‚¨ãƒ©ãƒ¼ã§ã‚‚ç¶šè¡Œï¼‰
 	//if (SDL_AddGamepadMappingsFromFile("Assets/Etc/gamecontrollerdb.txt") < 0) {
-	//	SDL_Log("ƒ}ƒbƒsƒ“ƒOƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ‚É¸”s‚µ‚Ü‚µ‚½i–³‹‚µ‚Ä‘±sj: %s", SDL_GetError());
-	//	// ƒ}ƒbƒsƒ“ƒOƒGƒ‰[‚Å‚à‰Šú‰»‚Í‘±s
+	//	SDL_Log("ãƒãƒƒãƒ”ãƒ³ã‚°ãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿ã«å¤±æ•—ã—ã¾ã—ãŸï¼ˆç„¡è¦–ã—ã¦ç¶šè¡Œï¼‰: %s", SDL_GetError());
+	//	// ãƒãƒƒãƒ”ãƒ³ã‚°ã‚¨ãƒ©ãƒ¼ã§ã‚‚åˆæœŸåŒ–ã¯ç¶šè¡Œ
 	//}
 
 	return true;
@@ -170,21 +170,21 @@ void InputManager::ProcessInput(SDL_Event& event) {
 
 void InputManager::PreUpdate() {
 
-	// ƒL[ƒ{[ƒh‚Ìó‘Ô‚ğƒRƒs[
+	// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã®çŠ¶æ…‹ã‚’ã‚³ãƒ”ãƒ¼
 	memcpy(_state.keyboard._previousKeyState, _state.keyboard._currentKeyState, SDL_SCANCODE_COUNT);
 
-	// ƒ}ƒEƒX‚Ìó‘Ô‚ğƒRƒs[
+	// ãƒã‚¦ã‚¹ã®çŠ¶æ…‹ã‚’ã‚³ãƒ”ãƒ¼
 	_state.mouse._previousButtons = _state.mouse._currentButtons;
-	_state.mouse._wheel = Vector2::Zero; // ƒzƒC[ƒ‹‚Ì’l‚ğƒŠƒZƒbƒg
-	//_state.mouse._isRelative = false; // ƒ}ƒEƒX‚Ì‘Š‘Îƒ‚[ƒh‚ğƒŠƒZƒbƒg
+	_state.mouse._wheel = Vector2::Zero; // ãƒ›ã‚¤ãƒ¼ãƒ«ã®å€¤ã‚’ãƒªã‚»ãƒƒãƒˆ
+	//_state.mouse._isRelative = false; // ãƒã‚¦ã‚¹ã®ç›¸å¯¾ãƒ¢ãƒ¼ãƒ‰ã‚’ãƒªã‚»ãƒƒãƒˆ
 
-	// ƒRƒ“ƒgƒ[ƒ‰‚Ìó‘Ô‚ğƒRƒs[
+	// ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ã®çŠ¶æ…‹ã‚’ã‚³ãƒ”ãƒ¼
 	memcpy(_state.gamepad._previousButtons, _state.gamepad._currentButtons, SDL_GAMEPAD_BUTTON_COUNT);
 
 }
 
-// ƒL[ƒ{[ƒh‚Ìó‘Ô‚ğXV
-void InputManager::KeyboardUpdate() { // ƒwƒ‹ƒp[ŠÖ” 
+// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã®çŠ¶æ…‹ã‚’æ›´æ–°
+void InputManager::KeyboardUpdate() { // ãƒ˜ãƒ«ãƒ‘ãƒ¼é–¢æ•° 
 	const bool* keyboardState = SDL_GetKeyboardState(NULL);
 
 	if (keyboardState) {
@@ -192,7 +192,7 @@ void InputManager::KeyboardUpdate() { // ƒwƒ‹ƒp[ŠÖ”
 	}
 }
 
-// ƒRƒ“ƒgƒ[ƒ‰‚Ìó‘Ô‚ğXV
+// ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ã®çŠ¶æ…‹ã‚’æ›´æ–°
 void InputManager::GamepadUpdate() {
 	if (_gamepad == nullptr) return;
 	for (int i = 0; i < SDL_GAMEPAD_BUTTON_COUNT; i++) {
@@ -206,8 +206,8 @@ void InputManager::GamepadUpdate() {
 	_state.gamepad._rightStick = Filter2D(SDL_GetGamepadAxis(_gamepad, SDL_GAMEPAD_AXIS_RIGHTX), SDL_GetGamepadAxis(_gamepad, SDL_GAMEPAD_AXIS_RIGHTY));
 }
 
-// ƒ}ƒEƒX‚Ìó‘Ô‚ğXV
-void InputManager::MouseUpdate() {// ƒwƒ‹ƒp[ŠÖ”
+// ãƒã‚¦ã‚¹ã®çŠ¶æ…‹ã‚’æ›´æ–°
+void InputManager::MouseUpdate() {// ãƒ˜ãƒ«ãƒ‘ãƒ¼é–¢æ•°
 	float x = 0;
 	float y = 0;
 	if (_state.mouse._isRelative) {
@@ -221,12 +221,12 @@ void InputManager::MouseUpdate() {// ƒwƒ‹ƒp[ŠÖ”
 }
 
 void InputManager::AxisUpdate(float deltaTime) {
-	// Še²‚Ìƒ}ƒbƒsƒ“ƒO‚É‘Î‚µ‚Ä’l‚ğXV
+	// å„è»¸ã®ãƒãƒƒãƒ”ãƒ³ã‚°ã«å¯¾ã—ã¦å€¤ã‚’æ›´æ–°
 	for (auto& pair : _axisMap) {
 		AxisMapping& mapping = pair.second;
 		float targetValue = 0.0f;
 
-		// positive‚Ì“ü—Í‚ªƒL[ƒ{[ƒh‚Ìê‡
+		// positiveã®å…¥åŠ›ãŒã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã®å ´åˆ
 		if (std::holds_alternative<SDL_Scancode>(mapping.positive)) {
 			SDL_Scancode key = std::get<SDL_Scancode>(mapping.positive);
 			if (_state.keyboard.GetKeyState(key) == BUTTON_STATE::PRESS ||
@@ -234,7 +234,7 @@ void InputManager::AxisUpdate(float deltaTime) {
 				targetValue += 1.0f;
 			}
 		}
-		// positive‚Ì“ü—Í‚ªƒQ[ƒ€ƒpƒbƒhƒ{ƒ^ƒ“‚Ìê‡
+		// positiveã®å…¥åŠ›ãŒã‚²ãƒ¼ãƒ ãƒ‘ãƒƒãƒ‰ãƒœã‚¿ãƒ³ã®å ´åˆ
 		else if (std::holds_alternative<SDL_GamepadButton>(mapping.positive)) {
 			SDL_GamepadButton button = std::get<SDL_GamepadButton>(mapping.positive);
 			if (_state.gamepad.GetButtonState(button) == BUTTON_STATE::PRESS ||
@@ -242,7 +242,7 @@ void InputManager::AxisUpdate(float deltaTime) {
 				targetValue += 1.0f;
 			}
 		}
-		// positive‚Ì“ü—Í‚ªƒ}ƒEƒXƒ{ƒ^ƒ“‚Ìê‡
+		// positiveã®å…¥åŠ›ãŒãƒã‚¦ã‚¹ãƒœã‚¿ãƒ³ã®å ´åˆ
 		else if (std::holds_alternative<SDL_MouseButton>(mapping.positive)) {
 			SDL_MouseButton button = std::get<SDL_MouseButton>(mapping.positive);
 			if (_state.mouse.GetButtonState(button) == BUTTON_STATE::PRESS ||
@@ -251,7 +251,7 @@ void InputManager::AxisUpdate(float deltaTime) {
 			}
 		}
 
-		// negative‚à“¯—l‚Éˆ—
+		// negativeã‚‚åŒæ§˜ã«å‡¦ç†
 		if (std::holds_alternative<SDL_Scancode>(mapping.negative)) {
 			SDL_Scancode key = std::get<SDL_Scancode>(mapping.negative);
 			if (_state.keyboard.GetKeyState(key) == BUTTON_STATE::PRESS ||
@@ -274,11 +274,11 @@ void InputManager::AxisUpdate(float deltaTime) {
 			}
 		}
 
-		// Œ»İ‚Ì’l‚ğXVid—Í‚Æsensitivity‚ğl—¶j
+		// ç¾åœ¨ã®å€¤ã‚’æ›´æ–°ï¼ˆé‡åŠ›ã¨sensitivityã‚’è€ƒæ…®ï¼‰
 		float currentValue = mapping.value;
 
 
-		// “ü—Í‚ª‚È‚¢ê‡‚Íd—Í‚Å0‚É–ß‚·
+		// å…¥åŠ›ãŒãªã„å ´åˆã¯é‡åŠ›ã§0ã«æˆ»ã™
 		if (targetValue == 0.0f) {
 			if (currentValue > 0.0f) {
 				currentValue -= mapping.gravity * deltaTime;
@@ -289,7 +289,7 @@ void InputManager::AxisUpdate(float deltaTime) {
 				if (currentValue > 0.0f) currentValue = 0.0f;
 			}
 		}
-		// “ü—Í‚ª‚ ‚éê‡‚ÍŠ´“x‚É]‚Á‚Ä–Ú•W’l‚É‹ß‚Ã‚¯‚é
+		// å…¥åŠ›ãŒã‚ã‚‹å ´åˆã¯æ„Ÿåº¦ã«å¾“ã£ã¦ç›®æ¨™å€¤ã«è¿‘ã¥ã‘ã‚‹
 		else {
 			if (mapping.snap && Math::Sign(currentValue) != Math::Sign(targetValue)) {
 				currentValue = 0.0f;
@@ -306,7 +306,7 @@ void InputManager::AxisUpdate(float deltaTime) {
 			}
 		}
 
-		// ƒfƒbƒhƒ][ƒ“‚ğ“K—p
+		// ãƒ‡ãƒƒãƒ‰ã‚¾ãƒ¼ãƒ³ã‚’é©ç”¨
 		if (Math::Abs(currentValue) < mapping.deadZone) {
 			currentValue = 0.0f;
 		}
@@ -320,18 +320,18 @@ float InputManager::GetAxis(const std::string& name) const {
 	if (it != _axisMap.end()) {
 		return it->second.value;
 	}
-	return 0.0f; // ƒfƒtƒHƒ‹ƒg’l‚ğ•Ô‚·i•K—v‚É‰‚¶‚Ä•ÏXj
+	return 0.0f; // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤ã‚’è¿”ã™ï¼ˆå¿…è¦ã«å¿œã˜ã¦å¤‰æ›´ï¼‰
 }
 
 void InputManager::Update(float deltaTime) {
 
-	// ƒL[ƒ{[ƒh‚Ìó‘Ô‚ğXV
+	// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã®çŠ¶æ…‹ã‚’æ›´æ–°
 	KeyboardUpdate();
 
-	// ƒRƒ“ƒgƒ[ƒ‰‚Ìó‘Ô‚ğXV
+	// ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ã®çŠ¶æ…‹ã‚’æ›´æ–°
 	GamepadUpdate();
 
-	// ƒ}ƒEƒX‚Ìó‘Ô‚ğXV
+	// ãƒã‚¦ã‚¹ã®çŠ¶æ…‹ã‚’æ›´æ–°
 	MouseUpdate();
 
 	AxisUpdate(deltaTime);
@@ -362,7 +362,7 @@ float InputManager::Filter1D(int input) {
 
 	int adsValue = Math::Abs(input);
 
-	if (adsValue > deadZone) { // ƒfƒbƒhƒ][ƒ“‚ğ’´‚¦‚Ä‚¢‚é
+	if (adsValue > deadZone) { // ãƒ‡ãƒƒãƒ‰ã‚¾ãƒ¼ãƒ³ã‚’è¶…ãˆã¦ã„ã‚‹
 
 		value = static_cast<float>(adsValue - deadZone) / (maxValue - deadZone);
 

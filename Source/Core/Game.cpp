@@ -1,9 +1,8 @@
-#include "Core/Game.h"
+﻿#include "Core/Game.h"
 #include <SDL3_ttf/SDL_ttf.h>
 #include "Input/InputManager.h"
 #include "Renderer/RendererManager.h"
 #include "DirectX/Direct3D.h"
-#include "Core/Scene.h"
 
 Game::Game()
 	:_rendererManager(nullptr)
@@ -42,11 +41,6 @@ bool Game::Initalize() {
 		return false;
 	}
 
-	_scene = new Scene();
-	if (!_scene->Initialize()) {
-		SDL_Log("Failed to initialize Scene : %s", SDL_GetError());
-		return false;
-	}
 
 	return true;
 }
@@ -69,11 +63,11 @@ void Game::Input() {
 
 void Game::Update() {
 	Input();
-	_scene->Update();
+	
 }
 
 void Game::Render() {
 	DIRECT3D.BeginRender();
-	_scene->Render();
+	
 	DIRECT3D.EndRender();
 }

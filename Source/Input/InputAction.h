@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <variant>
 #include <SDL3/SDL.h>
 #include <vector>
@@ -7,8 +7,8 @@
 #include <SDL3/SDL_keycode.h>
 #include <memory>
 
-/// @brief ƒ}ƒEƒXƒ{ƒ^ƒ“
-    /// ƒ}ƒEƒX‚Ìƒ{ƒ^ƒ“‚ğ•\‚·(SDL‚É‚Í‘¶İ‚µ‚È‚¢‚½‚ß©ì)
+/// @brief ãƒã‚¦ã‚¹ãƒœã‚¿ãƒ³
+    /// ãƒã‚¦ã‚¹ã®ãƒœã‚¿ãƒ³ã‚’è¡¨ã™(SDLã«ã¯å­˜åœ¨ã—ãªã„ãŸã‚è‡ªä½œ)
 enum class SDL_MouseButton {
     SDL_MOUSE_LEFT = 1,
     SDL_MOUSE_RIGHT = 2,
@@ -17,8 +17,8 @@ enum class SDL_MouseButton {
     SDL_MOUSE_X2 = 5
 };
 
-/// @brief ƒQ[ƒ€ƒpƒbƒh‚ÌƒXƒeƒBƒbƒN
-/// ƒQ[ƒ€ƒpƒbƒh‚ÌƒXƒeƒBƒbƒN‚ğ•\‚·(SDL‚É‚Í‘¶İ‚µ‚È‚¢‚½‚ß©ì)
+/// @brief ã‚²ãƒ¼ãƒ ãƒ‘ãƒƒãƒ‰ã®ã‚¹ãƒ†ã‚£ãƒƒã‚¯
+/// ã‚²ãƒ¼ãƒ ãƒ‘ãƒƒãƒ‰ã®ã‚¹ãƒ†ã‚£ãƒƒã‚¯ã‚’è¡¨ã™(SDLã«ã¯å­˜åœ¨ã—ãªã„ãŸã‚è‡ªä½œ)
 enum class SDL_GamepadStick {
     SDL_GAMEPAD_LEFT_STICK = 1,
     SDL_GAMEPAD_RIGHT_STICK = 2
@@ -28,14 +28,14 @@ enum class SDL_GamepadStickButton {
 
 };
 
-/// @brief ƒ}ƒEƒXƒ{ƒ^ƒ“‚Ìƒ}ƒXƒN‚ğæ“¾
-/// ƒ}ƒEƒXƒ{ƒ^ƒ“‚Ìƒ}ƒXƒN‚ğæ“¾‚·‚é
+/// @brief ãƒã‚¦ã‚¹ãƒœã‚¿ãƒ³ã®ãƒã‚¹ã‚¯ã‚’å–å¾—
+/// ãƒã‚¦ã‚¹ãƒœã‚¿ãƒ³ã®ãƒã‚¹ã‚¯ã‚’å–å¾—ã™ã‚‹
 inline Uint32 GetMouseButtonMask(SDL_MouseButton button) {
     return 1u << (static_cast<int>(button) - 1);
 }
 
-/// @brief •¡”‚Ì“ü—Í‚ğ‚Ü‚Æ‚ß‚½Œ^
-/// “ü—ÍƒAƒNƒVƒ‡ƒ“‚ğg—p‚·‚éÛ‚Ég—p‚·‚é
+/// @brief è¤‡æ•°ã®å…¥åŠ›ã‚’ã¾ã¨ã‚ãŸå‹
+/// å…¥åŠ›ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ã‚’ä½¿ç”¨ã™ã‚‹éš›ã«ä½¿ç”¨ã™ã‚‹
 using InputCode = std::variant<std::monostate, SDL_Scancode, SDL_GamepadButton, SDL_MouseButton>;
 
 using AxisCode = std::variant<std::monostate, SDL_GamepadAxis, std::string>;
@@ -46,17 +46,17 @@ public:
 	InputAction(class InputManager& inputManager);
 	~InputAction();
 //
-//	void MapAction(const std::string& name, InputCode code, int playerIndex = 0); // “ü—ÍƒAƒNƒVƒ‡ƒ“‚ğ“o˜^
+//	void MapAction(const std::string& name, InputCode code, int playerIndex = 0); // å…¥åŠ›ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ã‚’ç™»éŒ²
 //
 //	void MapActionAxis(const std::string& name, InputCode negative, InputCode positive);
-//	void MapActionAxis(const std::string& name, SDL_GamepadAxis axis); // “ü—ÍƒAƒNƒVƒ‡ƒ“‚ğ“o˜^
+//	void MapActionAxis(const std::string& name, SDL_GamepadAxis axis); // å…¥åŠ›ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ã‚’ç™»éŒ²
 //
-//	bool IsAction(const std::string& name, int player = 0) const; // “ü—Í‚ª‚ ‚é‚©‚Ç‚¤‚©
-//	bool IsActionDown(const std::string& name, int player = 0) const; // “ü—Í‚ª‚ ‚Á‚½uŠÔ‚©‚Ç‚¤‚©
-//	bool IsActionUp(const std::string& name, int player = 0) const; // “ü—Í‚ª—£‚³‚ê‚½uŠÔ‚©‚Ç‚¤‚©
+//	bool IsAction(const std::string& name, int player = 0) const; // å…¥åŠ›ãŒã‚ã‚‹ã‹ã©ã†ã‹
+//	bool IsActionDown(const std::string& name, int player = 0) const; // å…¥åŠ›ãŒã‚ã£ãŸç¬é–“ã‹ã©ã†ã‹
+//	bool IsActionUp(const std::string& name, int player = 0) const; // å…¥åŠ›ãŒé›¢ã•ã‚ŒãŸç¬é–“ã‹ã©ã†ã‹
 //
-//	float GetActionValue(const std::string& name, int player = 0) const; // “ü—Í‚Ì’l‚ğæ“¾
-//	Vector2 GetActionVector(const std::string& name, int player = 0) const; // “ü—Í‚ÌƒxƒNƒgƒ‹‚ğæ“¾
+//	float GetActionValue(const std::string& name, int player = 0) const; // å…¥åŠ›ã®å€¤ã‚’å–å¾—
+//	Vector2 GetActionVector(const std::string& name, int player = 0) const; // å…¥åŠ›ã®ãƒ™ã‚¯ãƒˆãƒ«ã‚’å–å¾—
 //
 //	bool IsKeyDown(SDL_Scancode key) const;
 //	bool IsKeyUp(SDL_Scancode key) const;
@@ -81,6 +81,6 @@ public:
 //private:
     class InputManager& _inputManager;
 //
-//	std::unordered_map<std::string, std::vector<InputCode>> _actionMap; // ƒAƒNƒVƒ‡ƒ“ƒ}ƒbƒv
-//	std::unordered_map<std::string, std::vector<AxisCode>> _axisMap; // ƒAƒNƒVƒ‡ƒ“ƒ}ƒbƒv
+//	std::unordered_map<std::string, std::vector<InputCode>> _actionMap; // ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ãƒãƒƒãƒ—
+//	std::unordered_map<std::string, std::vector<AxisCode>> _axisMap; // ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ãƒãƒƒãƒ—
 };

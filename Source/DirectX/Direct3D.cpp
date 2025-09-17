@@ -1,4 +1,4 @@
-#include "DirectX/Direct3D.h"
+﻿#include "DirectX/Direct3D.h"
 
 Direct3D* Direct3D::s_instance = nullptr;
 
@@ -131,7 +131,7 @@ bool Direct3D::CreateSwapChain() {
 
 bool Direct3D::CreateCommandAllocator() {
 
-	// �R�}���h�A���P�[�^�[�̍쐬
+	// ・ｽR・ｽ}・ｽ・ｽ・ｽh・ｽA・ｽ・ｽ・ｽP・ｽ[・ｽ^・ｽ[・ｽﾌ作成
 	for (int i = 0; i < FRAME_BUFFER_COUNT; i++) {
 		if (FAILED(_device->CreateCommandAllocator(
 			D3D12_COMMAND_LIST_TYPE_DIRECT,
@@ -140,7 +140,7 @@ bool Direct3D::CreateCommandAllocator() {
 		}
 	}
 
-	// �R�}���h���X�g�̍쐬
+	// ・ｽR・ｽ}・ｽ・ｽ・ｽh・ｽ・ｽ・ｽX・ｽg・ｽﾌ作成
 	if(FAILED(_device->CreateCommandList(
 		0,
 		D3D12_COMMAND_LIST_TYPE_DIRECT,

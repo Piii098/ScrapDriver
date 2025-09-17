@@ -1,14 +1,14 @@
-#pragma once
+ï»¿#pragma once
 #include "DirectX/DirectX.h"
 
 class RootSignature
 {
 public:
-	RootSignature(); // ƒRƒ“ƒXƒgƒ‰ƒNƒ^‚Åƒ‹[ƒgƒVƒOƒlƒ`ƒƒ‚ğ¶¬
-	bool IsValid(); // ƒ‹[ƒgƒVƒOƒlƒ`ƒƒ‚Ì¶¬‚É¬Œ÷‚µ‚½‚©‚Ç‚¤‚©‚ğ•Ô‚·
-	ID3D12RootSignature* Get(); // ƒ‹[ƒgƒVƒOƒlƒ`ƒƒ‚ğ•Ô‚·
+	RootSignature(); // ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã§ãƒ«ãƒ¼ãƒˆã‚·ã‚°ãƒãƒãƒ£ã‚’ç”Ÿæˆ
+	bool IsValid(); // ãƒ«ãƒ¼ãƒˆã‚·ã‚°ãƒãƒãƒ£ã®ç”Ÿæˆã«æˆåŠŸã—ãŸã‹ã©ã†ã‹ã‚’è¿”ã™
+	ID3D12RootSignature* Get(); // ãƒ«ãƒ¼ãƒˆã‚·ã‚°ãƒãƒãƒ£ã‚’è¿”ã™
 
 private:
-	bool _isValid = false; // ƒ‹[ƒgƒVƒOƒlƒ`ƒƒ‚Ì¶¬‚É¬Œ÷‚µ‚½‚©‚Ç‚¤‚©
-	ComPtr<ID3D12RootSignature> _rootSignature = nullptr; // ƒ‹[ƒgƒVƒOƒlƒ`ƒƒ
+	bool _isValid = false; // ãƒ«ãƒ¼ãƒˆã‚·ã‚°ãƒãƒãƒ£ã®ç”Ÿæˆã«æˆåŠŸã—ãŸã‹ã©ã†ã‹
+	ComPtr<ID3D12RootSignature> _rootSignature = nullptr; // ãƒ«ãƒ¼ãƒˆã‚·ã‚°ãƒãƒãƒ£
 };

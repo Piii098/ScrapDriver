@@ -1,4 +1,4 @@
-#include "Utility/Math.h"
+﻿#include "Utility/Math.h"
 
 const Vector2 Vector2::Zero(0.0f, 0.0f);
 const Vector2 Vector2::One(1.0f, 1.0f);
@@ -28,6 +28,8 @@ const Vector4 Vector4::Right(1.0f, 0.0f, 0.0f, 0.0f);
 const Vector4 Vector4::Left(-1.0f, 0.0f, 0.0f, 0.0f);
 const Vector4 Vector4::Forward(0.0f, 0.0f, 1.0f, 0.0f);
 const Vector4 Vector4::Backward(0.0f, 0.0f, -1.0f, 0.0f);
+
+const Quaternion Quaternion::Identity(0.0f, 0.0f, 0.0f, 1.0f);
 
 const Matrix4x4 Matrix4x4::Identity = XMMatrixIdentity();
 const Matrix4x4 Matrix4x4::Zero = XMMATRIX(

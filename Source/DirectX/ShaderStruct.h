@@ -1,14 +1,14 @@
-#pragma once
+﻿#pragma once
 #include "Framework.h"
 #include "DirectX.h"
 #include "../Utility/Math.h"
 
 struct Vertex {
-	Vector3 Position; // �ʒu���W
-	Vector3 Normal; // �@��
-	Vector2 UV; // uv���W
-	Vector3 Tangent; // �ڋ��
-	Vector4 Color; // ���_�F
+	Vector3 Position; // ・ｽﾊ置・ｽ・ｽ・ｽW
+	Vector3 Normal; // ・ｽ@・ｽ・ｽ
+	Vector2 UV; // uv・ｽ・ｽ・ｽW
+	Vector3 Tangent; // ・ｽﾚ具ｿｽ・ｽ
+	Vector4 Color; // ・ｽ・ｽ・ｽ_・ｽF
 
 	static const D3D12_INPUT_LAYOUT_DESC InputLayout;
 private:
@@ -18,14 +18,14 @@ private:
 
 struct alignas(256) Transform
 {
-	Matrix4x4 World; // ���[���h�s��
-	Matrix4x4 View; // �r���[�s��
-	Matrix4x4 Proj; // ���e�s��
+	Matrix4x4 World; // ・ｽ・ｽ・ｽ[・ｽ・ｽ・ｽh・ｽs・ｽ・ｽ
+	Matrix4x4 View; // ・ｽr・ｽ・ｽ・ｽ[・ｽs・ｽ・ｽ
+	Matrix4x4 Proj; // ・ｽ・ｽ・ｽe・ｽs・ｽ・ｽ
 };
 
 struct Mesh
 {
-	std::vector<Vertex> Vertices; // ���_�f�[�^�̔z��
-	std::vector<uint32_t> Indices; // �C���f�b�N�X�̔z��
-	std::wstring DiffuseMap; // �e�N�X�`���̃t�@�C���p�X
+	std::vector<Vertex> Vertices; // ・ｽ・ｽ・ｽ_・ｽf・ｽ[・ｽ^・ｽﾌ配・ｽ・ｽ
+	std::vector<uint32_t> Indices; // ・ｽC・ｽ・ｽ・ｽf・ｽb・ｽN・ｽX・ｽﾌ配・ｽ・ｽ
+	std::wstring DiffuseMap; // ・ｽe・ｽN・ｽX・ｽ`・ｽ・ｽ・ｽﾌフ・ｽ@・ｽC・ｽ・ｽ・ｽp・ｽX
 };
