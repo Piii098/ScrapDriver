@@ -22,7 +22,7 @@ struct VSOutput
     float2 uv : TEXCOORD; // UV
 };
 
-VSOutput vert(VSInput input)
+VSOutput VS(VSInput input)
 {
     VSOutput output = (VSOutput) 0; // アウトプット構造体を定義する
 

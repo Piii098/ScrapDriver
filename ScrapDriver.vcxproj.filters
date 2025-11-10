@@ -26,6 +26,9 @@
     <Filter Include="Resource">
       <UniqueIdentifier>{4367b494-e424-42b7-8a55-49629fc98f15}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Component">
+      <UniqueIdentifier>{2953ec4e-4090-46de-83c4-6fe5e57420c8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\Game.cpp">
@@ -79,9 +82,6 @@
     <ClCompile Include="Source\DirectX\ShaderStruct.cpp">
       <Filter>Renderer\DirectX</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Renderer\Camera.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Resource\Model.cpp">
       <Filter>Resource</Filter>
     </ClCompile>
@@ -91,8 +91,41 @@
     <ClCompile Include="Source\Core\GameObject.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Core\Component.cpp" />
-    <ClCompile Include="Source\LevelLoader\LevelLoader.cpp" />
+    <ClCompile Include="Source\Core\Component.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Resource\LoadingScene.cpp">
+      <Filter>Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\LevelLoader\LevelLoader.cpp">
+      <Filter>Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Resource\AssetManager.cpp">
+      <Filter>Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\SceneManager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\ModelComponent.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\TestComponent.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\PlaneComponent.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DirectX\RaytracingRootSignature.cpp">
+      <Filter>Renderer\DirectX</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DirectX\AccelerationStructure.cpp" />
+    <ClCompile Include="Source\DirectX\RaytracingPipeline.cpp" />
+    <ClCompile Include="Source\DirectX\ShaderTable.cpp" />
+    <ClCompile Include="Source\DirectX\RaytracingOutput.cpp" />
+    <ClCompile Include="Source\Renderer\RaytracingManager.cpp" />
+    <ClCompile Include="Source\Component\RaytracingModelComponent.cpp" />
+    <ClCompile Include="Source\Component\Camera.cpp" />
+    <ClCompile Include="Source\Scene\TestScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\Game.h">
@@ -149,9 +182,6 @@
     <ClInclude Include="Source\DirectX\ShaderStruct.h">
       <Filter>Renderer\DirectX</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Renderer\Camera.h">
-      <Filter>Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Resource\Model.h">
       <Filter>Resource</Filter>
     </ClInclude>
@@ -161,17 +191,62 @@
     <ClInclude Include="Source\Core\GameObject.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Core\Component.h" />
-    <ClInclude Include="Source\LevelLoader\LevelLoader.h" />
+    <ClInclude Include="Source\Utility\Utility.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Component.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Resource\LoadingScene.h">
+      <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\LevelLoader\LevelLoader.h">
+      <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Resource\AssetManager.h">
+      <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\SceneManager.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Component\ModelComponent.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Component\TestComponent.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Component\PlaneComponent.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\DirectX\RaytracingRootSignature.h">
+      <Filter>Renderer\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\DirectX\AccelerationStructure.h" />
+    <ClInclude Include="Source\DirectX\RaytracingPipeline.h" />
+    <ClInclude Include="Source\DirectX\ShaderTable.h" />
+    <ClInclude Include="Source\DirectX\RaytracingOutput.h" />
+    <ClInclude Include="Source\Renderer\RaytracingManager.h" />
+    <ClInclude Include="Source\Component\RaytracingModelComponent.h" />
+    <ClInclude Include="Source\Component\Camera.h" />
+    <ClInclude Include="Source\Scene\TestScene.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="Assets\Shader\TestType.hlsli">
+      <Filter>Shader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Assets\Shader\SimplePS.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
     <FxCompile Include="Assets\Shader\SimpleVS.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="Assets\Shader\TestVS.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="Assets\Shader\TestPS.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
   </ItemGroup>

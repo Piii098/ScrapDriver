@@ -15,6 +15,26 @@ const Vector3 Vector3::Right(1.0f, 0.0f, 0.0f);
 const Vector3 Vector3::Left(-1.0f, 0.0f, 0.0f);
 const Vector3 Vector3::Forward(0.0f, 0.0f, 1.0f);
 const Vector3 Vector3::Backward(0.0f, 0.0f, -1.0f);
+const Vector3 Vector3::UnitX(1.0f, 0.0f, 0.0f);
+const Vector3 Vector3::UnitY(0.0f, 1.0f, 0.0f);
+const Vector3 Vector3::UnitZ(0.0f, 0.0f, 1.0f);
+
+Vector3 Vector3::Transform(const Vector3& v, const Matrix4x4& m) {
+	XMVECTOR vec = XMLoadFloat3(&v);
+	XMVECTOR transformedVec = XMVector3TransformCoord(vec, m);
+	Vector3 result;
+	XMStoreFloat3(&result, transformedVec);
+	return result;
+}
+
+Vector3 Vector3::Transform(const Vector3& v, const Quaternion& q) {
+	XMVECTOR vec = XMLoadFloat3(&v);
+	XMVECTOR quat = XMLoadFloat4(&q);
+	XMVECTOR transformedVec = XMVector3Rotate(vec, quat);
+	Vector3 result;
+	XMStoreFloat3(&result, transformedVec);
+	return result;
+}
 
 const Vector4 Vector4::UnitX(1.0f, 0.0f, 0.0f, 0.0f);
 const Vector4 Vector4::UnitY(0.0f, 1.0f, 0.0f, 0.0f);

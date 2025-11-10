@@ -1,49 +1,52 @@
 ﻿#include "DirectX/VertexBuffer.h"
 #include "Framework.h"
 
-VertexBuffer::VertexBuffer(size_t size, size_t stride, const void* pInitData)
+VertexBuffer::VertexBuffer(Vertex* vertices, size_t vertexCount)
 {
+    D3D12_HEAP_PROPERTIES heapProps = {};
+    heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+    heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
 
-	auto prop = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD); 	// ヒーププロパティ
-	auto desc = CD3DX12_RESOURCE_DESC::Buffer(size); 	// リソースの設定
+    D3D12_RESOURCE_DESC desc = {};
+    desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+    desc.Alignment = 0;
+    desc.Width = sizeof(Vertex) * vertexCount;
+    desc.Height = 1;
+    desc.DepthOrArraySize = 1;
+    desc.MipLevels = 1;
+    desc.SampleDesc.Count = 1;
+    desc.Format = DXGI_FORMAT_UNKNOWN;
+    desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+    desc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-	// リソースを生成
-	auto hr = DIRECT3D.Device().CreateCommittedResource(
-		&prop,
-		D3D12_HEAP_FLAG_NONE,
-		&desc,
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		IID_PPV_ARGS(_buffer.GetAddressOf()));
+    if (FAILED(DIRECT3D.Device().CreateCommittedResource(
+        &heapProps,
+        D3D12_HEAP_FLAG_NONE,
+        &desc,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(&_buffer)))) {
+        SDL_Log("Failed to create vertex buffer resource.");
+		_isValid = false;
+        return;
+    }
 
-	if (FAILED(hr))
-	{
-		printf("頂点バッファリソースの生成に失敗");
-		return;
-	}
+    Vertex* vertMap = nullptr;
+    if (FAILED(_buffer->Map(0, nullptr, (void**)&vertMap))) {
+        SDL_Log("Failed to map vertex buffer.");
+		_isValid = false;
+        return;
+    }
 
-	// 頂点バッファビューの設定
-	_view.BufferLocation = _buffer->GetGPUVirtualAddress();
-	_view.SizeInBytes = static_cast<UINT>(size);
-	_view.StrideInBytes = static_cast<UINT>(stride);
+    std::copy(vertices, vertices + vertexCount, vertMap);
 
-	// マッピングする
-	if (pInitData != nullptr)
-	{
-		void* ptr = nullptr;
-		hr = _buffer->Map(0, nullptr, &ptr);
-		if (FAILED(hr))
-		{
-			printf("頂点バッファマッピングに失敗");
-			return;
-		}
+    _buffer->Unmap(0, nullptr);
 
-		// 頂点データをマッピング先に設定
-		memcpy(ptr, pInitData, size);
-
-		// マッピング解除
-		_buffer->Unmap(0, nullptr);
-	}
+    _view = {};
+    _view.BufferLocation = _buffer->GetGPUVirtualAddress();
+    _view.SizeInBytes = static_cast<UINT>(sizeof(Vertex) * vertexCount);
+    _view.StrideInBytes = sizeof(Vertex);
 
 	_isValid = true;
 }
@@ -56,4 +59,9 @@ D3D12_VERTEX_BUFFER_VIEW VertexBuffer::View() const
 bool VertexBuffer::IsValid()
 {
 	return _isValid;
+}
+
+void VertexBuffer::Bind()
+{
+	DIRECT3D.CommandList().IASetVertexBuffers(0, 1, &_view);
 }

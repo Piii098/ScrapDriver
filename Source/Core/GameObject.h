@@ -43,6 +43,8 @@ public:
 
     void LateUpdate(float deltaTime);
 
+	void Render();
+
     void Cleanup();
 
 
@@ -67,7 +69,7 @@ public:
     /// @param args コンストラクタに渡す引数 ( 第一引数のGameObjectへの参照は自動で設定される )
     /// @return 生成したコンポーネントへの参照( 一時的な参照を推奨 )
     template<typename T, typename... Args>
-    T& CreateComponent(Args&&... args);
+    T* CreateComponent(Args&&... args);
 
     /// @brief コンポーネントの取得
     /// 指定した型のコンポーネントを取得する
@@ -89,23 +91,26 @@ public:
     // ===== ゲッターセッター ===== //
 
 	void Name(const std::string& name) { _name = name; }
-    void Position(const Vector3& position) { _position = position; _recomputeWorldTransform = true; }
-    void Position(float x, float y, float z) { _position = Vector3(x, y, z); _recomputeWorldTransform = true; }
-    void Position2D(const Vector2& position) { _position = Vector3(round(position.x), round(position.y), Position().z); _recomputeWorldTransform = true; }
-    void Position2D(float x, float y) { _position = Vector3(round(x), round(y), Position().z); _recomputeWorldTransform = true; }
+    void Position(const Vector3& position) { _position = position; _recomputeWorldTransform = true; MarkChildrenDirty(); }
+    void Position(float x, float y, float z) { _position = Vector3(x, y, z); _recomputeWorldTransform = true; MarkChildrenDirty(); }
+    void Position2D(const Vector2& position) { _position = Vector3(round(position.x), round(position.y), Position().z); _recomputeWorldTransform = true; MarkChildrenDirty(); }
+    void Position2D(float x, float y) { _position = Vector3(round(x), round(y), Position().z); _recomputeWorldTransform = true; MarkChildrenDirty(); }
     void PositionPercent(const Vector2& percent);
-    void Scale(const Vector3& scale) { _scale = scale; _recomputeWorldTransform = true; }
-    void Rotation(Quaternion rotation) { _rotation = rotation; _recomputeWorldTransform = true; }
+    void Scale(const Vector3& scale) { _scale = scale; _recomputeWorldTransform = true; MarkChildrenDirty(); }
+	void Scale(float x, float y, float z) { _scale = Vector3(x, y, z); _recomputeWorldTransform = true; MarkChildrenDirty(); }
+    void Rotation(Quaternion rotation) { _rotation = rotation; _recomputeWorldTransform = true; MarkChildrenDirty(); }
     void State(STATE state) { _state = state; }
     void SetParent(GameObject* parent) { _parent = parent; }
 
+    Scene& GetScene() { return _scene; }
     const STATE State() const { return _state; }
     const Vector3& Scale() const { return _scale; }
-    const Quaternion Rotation() const { return _rotation; }
+    const Quaternion& Rotation() const { return _rotation;  }
     const Matrix4x4& WorldTransform() const { return _worldTransform; }
     const Vector3& Position() const { return _position; }
-    const Vector3& Position() { return _position; }
-    const Vector2& Position2D() { return Vector2(_position.x, _position.y); }
+    Vector3& Position() { _recomputeWorldTransform = true; MarkChildrenDirty(); return _position; }
+    Vector2 Position2D() const { return Vector2(_position.x, _position.y); }
+	Quaternion& Rotation() { _recomputeWorldTransform = true; MarkChildrenDirty(); return _rotation; }
     //const Vector3& GetRight() { return Vector3::Transform(Vector3::UnitX, _rotation); } ///< 右方向ベクトルを取得する
     //const Vector3& GetForward() { return Vector3::Transform(Vector3::UnitZ, _rotation); } ///< 前方ベクトルを取得する
 
@@ -155,6 +160,9 @@ private:
     /// @param component 追加するコンポーネント
     void AddComponent(std::unique_ptr<Component> component);
 
+    /// @brief 全ての子オブジェクトに再計算フラグを立てる
+    void MarkChildrenDirty();
+
 
     // ===== メンバ変数 ===== //
 
@@ -184,11 +192,11 @@ private:
 
 
 template<typename T, typename... Args>
-T& GameObject::CreateComponent(Args&&... args) {
+T* GameObject::CreateComponent(Args&&... args) {
     auto component = std::make_unique<T>(*this, std::forward<Args>(args)...);
-    T& compRef = *component; // 生ポインタではなく参照を取得
+	T* rawPtr = component.get();
     _components.emplace_back(std::move(component));
-    return compRef;
+    return rawPtr;
 }
 
 template <typename T>

@@ -5,25 +5,28 @@
 class Texture2D
 {
 public:
-	static Texture2D* Get(std::string path); // stringで受け取ったパスからテクスチャを読み込む
-	static Texture2D* Get(std::wstring path); // wstringで受け取ったパスからテクスチャを読み込む
-	static Texture2D* GetWhite(); // 白の単色テクスチャを生成する
-	bool IsValid(); // 正常に読み込まれているかどうかを返す
+    Texture2D(const std::wstring& filePath);
+    Texture2D();
+	Texture2D(ID3D12Resource* resource);
+    ~Texture2D();
 
-	ID3D12Resource* Resource(); // リソースを返す
-	D3D12_SHADER_RESOURCE_VIEW_DESC ViewDesc(); // シェーダーリソースビューの設定を返す
+    void Load(const std::string& filePath);
+    bool IsValid() const { return _isValid; }
+    ID3D12Resource* GetTexture() const { return _texture.Get(); }
+    UINT GetDescriptorIndex() const { return _svrIndex; }  // インデックス取得用
 
-private:
-	bool _isValid; // 正常に読み込まれているか
-	Texture2D(std::string path);
-	Texture2D(std::wstring path);
-	Texture2D(ID3D12Resource* buffer);
-	ComPtr<ID3D12Resource> _resource; // リソース
-	bool Load(std::string& path);
-	bool Load(std::wstring& path);
-
+	static Texture2D* Get(const std::wstring& filePath);
+	static Texture2D* Get(const std::string& filePath); 
+    static Texture2D* GetWhite();
 	static ID3D12Resource* GetDefaultResource(size_t width, size_t height);
 
-	Texture2D(const Texture2D&) = delete;
-	void operator = (const Texture2D&) = delete;
+    void Bind();
+
+private:
+    bool LoadFromFile(const std::wstring& filePath);
+    bool CreateTexture(const TexMetadata& metadata, const Image* image);
+
+    bool _isValid;
+    UINT _svrIndex;
+    ComPtr<ID3D12Resource> _texture;
 };

@@ -18,7 +18,7 @@ GameObject::GameObject(Scene& scene)
 	: _state(STATE::ACTIVE)
 	, _scene(scene)
 	, _position(Vector3::Zero)
-	, _scale(Vector3::Zero)
+	, _scale(Vector3::One)
 	, _rotation(Quaternion::Identity)
 	, _recomputeWorldTransform(true) {
 	SetParent(nullptr);
@@ -28,7 +28,7 @@ GameObject::GameObject(GameObject* parent)
 	: _state(STATE::ACTIVE)
 	, _scene(parent->_scene)
 	, _position(Vector3::Zero)
-	, _scale(Vector3::Zero)
+	, _scale(Vector3::One)
 	, _rotation(Quaternion::Identity)
 	, _recomputeWorldTransform(true) {
 	parent->AddChildObject(this);
@@ -39,10 +39,20 @@ GameObject::GameObject(GameObject* parent)
  * デストラクタ
  *
  * 親オブジェクトから自身を削除する
+ * 子オブジェクトも全て削除する
  */
 GameObject::~GameObject() {
-	//_scene.RemoveObject(this);
-
+	// 親から自分を削除
+	if (_parent != nullptr) {
+		_parent->RemoveChildObject(this);
+	}
+	
+	// 全ての子オブジェクトを削除（逆順で削除して安全に）
+	while (!_children.empty()) {
+		auto child = _children.back();
+		_children.pop_back();
+		child->Destroy();
+	}
 }
 
 
@@ -125,6 +135,13 @@ void GameObject::LateUpdate(const float deltaTime) {
 	LateUpdateObject(deltaTime);
 }
 
+void GameObject::Render() {
+	if (_state != STATE::ACTIVE) return;
+	for (auto& comp : _components) {
+		comp->Render();
+	}
+}
+
 // ====== コンポーネント関連 ===== //
 
 /**
@@ -169,12 +186,21 @@ void GameObject::RemoveChildObject(GameObject* child) {
 }
 
 void GameObject::Destroy() {
+	// 親から削除（デストラクタでも行うが、明示的な削除の場合は先に行う）
 	if (_parent != nullptr) {
 		_parent->RemoveChildObject(this);
+		_parent = nullptr; // 親への参照をクリア
 	}
-	for (auto& child : _children) {
+	
+	// 子オブジェクトのコピーを作成してから削除（イテレータの無効化を防ぐ）
+	std::vector<GameObject*> childrenCopy = _children;
+	_children.clear(); // 先にクリアしてデストラクタでの重複削除を防ぐ
+	
+	for (auto& child : childrenCopy) {
 		child->Destroy();
 	}
+	
+	// シーンから削除（これによりunique_ptrが解放され、デストラクタが呼ばれる）
 	_scene.DestroyObject(this);
 }
 
@@ -229,6 +255,13 @@ void GameObject::PositionPercent(const Vector2& percent) {
 	//_position.x = percent.x * _scene.GetManager().GetGame().WinfowWidth();
 	//_position.y = percent.y * _scene.GetManager().GetGame().WinfowHeight();
 	//_recomputeWorldTransform = true; // ワールド変換行列を再計算するフラグを立てる
+}
+
+void GameObject::MarkChildrenDirty() {
+	for (auto& child : _children) {
+		child->_recomputeWorldTransform = true;
+		child->MarkChildrenDirty(); // 再帰的に子孫全てに適用
+	}
 }
 
 //==============================================================================

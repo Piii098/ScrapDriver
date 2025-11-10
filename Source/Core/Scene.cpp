@@ -3,15 +3,15 @@
 #include "Core/Scene.h"
 #include "Core/GameObject.h"
 #include "Core/Component.h"
+#include "Component/ModelComponent.h"
 #include <iterator>
 
 //==============================================================================
 // コンストラクタ・デストラクタ
 //==============================================================================
 
-Scene::Scene(SceneManager& manager)
-	: _manager(manager)
-	, _state(STATE::ACTIVE)
+Scene::Scene()
+	:_state(STATE::ACTIVE)
 	, _isUpdating(false) {
 }
 
@@ -128,7 +128,9 @@ void Scene::LateUpdate(float deltaTime) {
 }
 
 void Scene::Render() {
-
+	for (auto& obj : _objects) {
+		obj->Render();
+	}
 }
 
 // ====== オブジェクト関連 ====== //
@@ -230,7 +232,7 @@ void Scene::DestroyObject(GameObject* object) {
 //void Scene::AddModel(ModelComponent* model) {
 //	_models.emplace_back(model);
 //}
-//
+
 //void Scene::RemoveModel(ModelComponent* model) {
 //	auto iter = std::find(_models.begin(), _models.end(), model);
 //	if (iter != _models.end()) {

@@ -1,13 +1,37 @@
 ﻿#include "Core/SceneManager.h"
 #include "Core/Scene.h"
+#include "Core/GameObject.h"
+#include "Resource/AssetManager.h"
+#include "Component/ModelComponent.h"
+#include "Component/TestComponent.h"
+#include "Component/PlaneComponent.h"
+#include "Component/RaytracingModelComponent.h"
+#include "Component/Camera.h"
+#include "Scene/TestScene.h"
 
-SceneManager& SceneManager::Instance() {
-    static SceneManager instance;
-    return instance;
+SceneManager* SceneManager::s_instance = nullptr;
+
+SceneManager::SceneManager() : _currentScene(nullptr) {
+
 }
 
 SceneManager::~SceneManager() {
     Cleanup();
+}
+
+bool SceneManager::Initialize() {
+
+	TestScene* scene = new TestScene();
+
+	AddScene("Main", std::shared_ptr<Scene>(scene));
+    if(ChangeScene("Main")){
+        SDL_Log("Scene Change Success : Main");
+    } else {
+        SDL_Log("Scene Change Failed : Main");
+		return false;
+    }
+
+    return true;
 }
 
 void SceneManager::AddScene(const std::string& name, std::shared_ptr<Scene> scene) {
@@ -64,6 +88,12 @@ std::shared_ptr<Scene> SceneManager::GetScene(const std::string& name) const {
         return it->second;
     }
     return nullptr;
+}
+
+void SceneManager::Input(const InputAction& input) {
+    if (_currentScene) {
+        _currentScene->Input(input);
+    }
 }
 
 void SceneManager::Update(float deltaTime) {

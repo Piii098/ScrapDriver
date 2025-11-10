@@ -4,6 +4,8 @@
 #include "DirectX/ShaderStruct.h"
 #include <Windows.h>
 #include <vector>
+#include <functional>
+#include "Renderer/RaytracingManager.h"
 
 class RendererManager {
 public:
@@ -12,11 +14,16 @@ public:
 
 	bool Initialize();
 	void Update();
-	void Render();
-	
+	void Render(std::function<void()> renderFunc);
+
+	// レイトレーシング関連
+	bool InitializeRaytracing();
+	void RenderRaytracing();
+	RaytracingManager* GetRaytracingManager() { return _raytracingManager.get(); }
+
 	// カメラとライティング設定
-	void SetCamera(const Vector3& eyePos, const Vector3& targetPos, const Vector3& upward);
-	void SetProjection(float fov, float aspect, float nearPlane, float farPlane);
+	//void SetCamera(const Vector3& eyePos, const Vector3& targetPos, const Vector3& upward);
+	//void SetProjection(float fov, float aspect, float nearPlane, float farPlane);
 
 private:
 	class Game& _game;
@@ -25,14 +32,23 @@ private:
 	class Camera* _camera;
 	
 	// レンダリング関連
-	class ConstantBuffer* _constantBuffer[3]; // FRAME_BUFFER_COUNT分
+	class ConstantBuffer* _constantBuffer; 
 	class RootSignature* _rootSignature;
 	class PipelineState* _pipelineState;
-	
-	// 変換行列
-	float _rotationY = 0.0f;
+
+	// レイトレーシング関連
+	std::unique_ptr<RaytracingManager> _raytracingManager;
+	bool _useRaytracing = false;
+
+	float _angle;
+	Matrix4x4 _worldMatrix;
+	Matrix4x4 _viewMatrix;
+	Matrix4x4 _projectionMatrix;
+	Transform* _mapPtr;
+	UINT _cbvIndex = 0;
 	
 	bool CreateRenderingResources();
 	bool CreateRootSignature();
 	bool CreatePipelineState();
 };
+

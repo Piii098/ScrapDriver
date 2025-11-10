@@ -1,31 +1,51 @@
 ﻿#pragma once
 #include "Framework.h"
 #include "DirectX.h"
-#include "../Utility/Math.h"
+#include "Utility/Math.h"
 
 struct Vertex {
-	Vector3 Position; // ・ｽﾊ置・ｽ・ｽ・ｽW
-	Vector3 Normal; // ・ｽ@・ｽ・ｽ
-	Vector2 UV; // uv・ｽ・ｽ・ｽW
-	Vector3 Tangent; // ・ｽﾚ具ｿｽ・ｽ
-	Vector4 Color; // ・ｽ・ｽ・ｽ_・ｽF
+	Vector3 Position;
+	Vector3 Normal;
+	Vector2 UV;
+	Vector3 Tangent;
+	Vector4 Color;
 
-	static const D3D12_INPUT_LAYOUT_DESC InputLayout;
-private:
-	static const int InputElementCount = 5;
-	static const D3D12_INPUT_ELEMENT_DESC InputElements[InputElementCount];
+	static std::vector<D3D12_INPUT_ELEMENT_DESC> InputLayout;
 };
 
-struct alignas(256) Transform
+struct Transform
 {
-	Matrix4x4 World; // ・ｽ・ｽ・ｽ[・ｽ・ｽ・ｽh・ｽs・ｽ・ｽ
-	Matrix4x4 View; // ・ｽr・ｽ・ｽ・ｽ[・ｽs・ｽ・ｽ
-	Matrix4x4 Proj; // ・ｽ・ｽ・ｽe・ｽs・ｽ・ｽ
+	Matrix4x4 World; // 
+	Matrix4x4 View; // 
+	Matrix4x4 Proj; // 
 };
 
 struct Mesh
 {
-	std::vector<Vertex> Vertices; // ・ｽ・ｽ・ｽ_・ｽf・ｽ[・ｽ^・ｽﾌ配・ｽ・ｽ
-	std::vector<uint32_t> Indices; // ・ｽC・ｽ・ｽ・ｽf・ｽb・ｽN・ｽX・ｽﾌ配・ｽ・ｽ
-	std::wstring DiffuseMap; // ・ｽe・ｽN・ｽX・ｽ`・ｽ・ｽ・ｽﾌフ・ｽ@・ｽC・ｽ・ｽ・ｽp・ｽX
+	std::vector<Vertex> Vertices; // 
+	std::vector<unsigned short> Indices; // 
+	std::wstring DiffuseMap; // X
+};
+
+// レイトレーシング用カメラデータ
+struct RaytracingCameraData {
+	Vector3 Position;
+	float FOV;              // 視野角（ラジアン）
+	Vector3 Forward;
+	float AspectRatio;      // アスペクト比
+	Vector3 Right;
+	float _padding1;
+	Vector3 Up;
+	float _padding2;
+};
+
+// レイトレーシング用マテリアルデータ
+struct RaytracingMaterialData {
+	float reflectanceCoef;      // 反射係数
+	float diffuseCoef;          // 拡散反射係数
+	float specularCoef;         // 鏡面反射係数
+	float specularPower;        // 鏡面反射の鋭さ
+	Vector3 lightPosition;      // ライト位置
+	float _padding3;
+	Vector4 lightColor;         // ライト色（RGBA）
 };

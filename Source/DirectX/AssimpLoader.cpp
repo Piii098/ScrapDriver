@@ -64,13 +64,11 @@ bool AssimpLoader::Load(ImportSettings settings)
 
     if (scene == nullptr)
     {
-        // �����ǂݍ��݃G���[���ł���\������
         printf(importer.GetErrorString());
         printf("\n");
         return false;
     }
 
-    // �ǂݍ��񂾃f�[�^�������Œ�`����Mesh�\���̂ɕϊ�����
     meshes.clear();
     meshes.resize(scene->mNumMeshes);
     for (size_t i = 0; i < meshes.size(); ++i)
@@ -102,7 +100,6 @@ void AssimpLoader::LoadMesh(Mesh& dst, const aiMesh* src, bool inverseU, bool in
         auto tangent = (src->HasTangentsAndBitangents()) ? &(src->mTangents[i]) : &zero3D;
         auto color = (src->HasVertexColors(0)) ? &(src->mColors[0][i]) : &zeroColor;
 
-        // ���]�I�v�V��������������UV�𔽓]������
         if (inverseU)
         {
             uv->x = 1 - uv->x;

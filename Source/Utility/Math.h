@@ -120,6 +120,11 @@ namespace Math {
 		return glm::distance(a, b);
 	}
 
+	inline float ToRadians(float degrees)
+	{
+		return glm::radians(degrees);
+	}
+
 };
 using namespace DirectX;
 
@@ -205,6 +210,18 @@ struct Vector3 : public XMFLOAT3 {
 		XMStoreFloat3(this, temp);
 		return *this;
 	}
+
+	Vector3& operator+=(const Vector3& other) {
+		*this = XMVectorAdd(XMVECTOR(*this), XMVECTOR(other));
+		return *this;
+	}
+
+	Vector3& operator-=(const Vector3& other) {
+		*this = XMVectorSubtract(XMVECTOR(*this), XMVECTOR(other));
+		return *this;
+	}
+
+
 	//キャスト
 	operator XMVECTOR() const {
 		return XMLoadFloat3(this);
@@ -218,6 +235,9 @@ struct Vector3 : public XMFLOAT3 {
 		*this = XMVector3Normalize(XMVECTOR(*this));
 	}
 
+	static Vector3 Transform(const Vector3& v, const Matrix4x4& m);
+	static Vector3 Transform(const Vector3& v, const Quaternion& q);
+
 	static const Vector3 Zero;
 	static const Vector3 One;
 	static const Vector3 Up;
@@ -226,6 +246,10 @@ struct Vector3 : public XMFLOAT3 {
 	static const Vector3 Left;
 	static const Vector3 Forward;
 	static const Vector3 Backward;
+	static const Vector3 UnitX;
+	static const Vector3 UnitY;
+	static const Vector3 UnitZ;
+
 };
 
 struct Vector4 : public XMFLOAT4
@@ -345,6 +369,11 @@ struct Quaternion : public XMFLOAT4
 	static Quaternion FromAxisAngle(const Vector3& axis, float angle) {
 		return Quaternion(XMQuaternionRotationAxis(XMVECTOR(axis), angle));
 	}
+
+	static Quaternion FromAxisAngle(float x, float y, float z, float angle) {
+		return Quaternion(XMQuaternionRotationAxis(XMVectorSet(x, y, z, 0.0f), angle));
+	}
+
 	//
 	//static Quaternion FromMatrix(const Matrix4x4& matrix) {
 	//	// Matrix4x4は既にXMMATRIXを継承しているので、そのまま渡せる
@@ -462,6 +491,21 @@ struct Matrix4x4 : public XMMATRIX
 		return Matrix4x4(XMMatrixTranslation(position.x, position.y, position.z));
 	}
 
+	static Matrix4x4 CreateLookAtLH(const Vector3& eye, const Vector3& at, const Vector3& up) {
+		return Matrix4x4(XMMatrixLookAtLH(XMVECTOR(eye), XMVECTOR(at), XMVECTOR(up)));
+	}
+
+	static Matrix4x4 CreateLookAtRH(const Vector3& eye, const Vector3& at, const Vector3& up) {
+		return Matrix4x4(XMMatrixLookAtRH(XMVECTOR(eye), XMVECTOR(at), XMVECTOR(up)));
+	}
+
+	static Matrix4x4 CreatePerspectiveFovLH(float fovY, float aspect, float nearZ, float farZ) {
+		return Matrix4x4(XMMatrixPerspectiveFovLH(fovY, aspect, nearZ, farZ));
+	}
+
+	static Matrix4x4 CreatePerspectiveFovRH(float fovY, float aspect, float nearZ, float farZ) {
+		return Matrix4x4(XMMatrixPerspectiveFovRH(fovY, aspect, nearZ, farZ));
+	}
 
 	static const Matrix4x4 Identity;
 	static const Matrix4x4 Zero;

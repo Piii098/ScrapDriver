@@ -6,9 +6,8 @@
 
 class SceneManager {
 public:
-    static SceneManager& Instance();
-    
-    ~SceneManager();
+
+	bool Initialize();
     
     // シーンの管理
     void AddScene(const std::string& name, std::shared_ptr<Scene> scene);
@@ -20,17 +19,37 @@ public:
     std::shared_ptr<Scene> GetScene(const std::string& name) const;
     
     // 更新とレンダリング
+	void Input(const class InputAction& input);
     void Update(float deltaTime);
     void Render();
     void Cleanup();
     
 private:
-    SceneManager() = default;
+    SceneManager();
+    ~SceneManager();
     
     std::unordered_map<std::string, std::shared_ptr<Scene>> _scenes;
     std::shared_ptr<Scene> _currentScene;
     
-    // シングルトンパターン
-    SceneManager(const SceneManager&) = delete;
-    SceneManager& operator=(const SceneManager&) = delete;
+	static SceneManager* s_instance;
+
+public:
+
+    static void CreateInstance() {
+        DestroyInstance();
+		s_instance = new SceneManager();
+    }
+
+    static void DestroyInstance() {
+        if (s_instance) {
+            delete s_instance;
+            s_instance = nullptr;
+        }
+    }
+
+    static SceneManager& Instance() {
+        return *s_instance;
+    }
 };
+
+#define SCENEMANAGER SceneManager::Instance()

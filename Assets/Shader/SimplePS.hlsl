@@ -1,14 +1,14 @@
 struct VSOutput
 {
-    float4 svpos : SV_POSITION; // ���_�V�F�[�_�[���痈�����W
-    float4 color : COLOR; // ���_�V�F�[�_�[���痈���F
-    float2 uv : TEXCOORD; // ���_�V�F�[�_�[���痈��UV
+    float4 svpos : SV_POSITION; // 
+    float4 color : COLOR; // 
+    float2 uv : TEXCOORD; // 
 };
 
 SamplerState smp : register(s0);
 Texture2D _MainTex : register(t0);
 
-float4 pixel(VSOutput input) : SV_TARGET
+float4 PS(VSOutput input) : SV_TARGET
 {
     // テクスチャをサンプリング
     float4 texColor = _MainTex.Sample(smp, input.uv);

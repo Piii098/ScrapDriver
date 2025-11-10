@@ -14,7 +14,7 @@
 class Scene {
 public:
 
-	Scene(class SceneManager& manager);
+	Scene();
 
 	virtual ~Scene();
 
@@ -64,10 +64,10 @@ public:
 	/// @param args ゲームオブジェクトのコンストラクタに渡す引数 (第一引数のシーンの参照は自動で渡される)
 	/// @return 生成したゲームオブジェクトのポインタ
 	template <typename T, typename... Args>
-	T& CreateGameObject(Args&&... args);
+	T* CreateGameObject(Args&&... args);
 
 	template <typename T, typename... Args>
-	T& CreateChildObject(class GameObject* parent, Args&&... args);
+	T* CreateChildObject(class GameObject* parent, Args&&... args);
 
 	/// @brief ゲームオブジェクトの削除
 	/// シーンのゲームオブジェクトの配列からゲームオブジェクトを削除する
@@ -108,7 +108,7 @@ public:
 	///// @brief モデルの追加
 	///// シーンのモデルの配列にモデルを追加する
 	///// @param model 追加するモデル
-	//void AddModel(ModelComponent* model);
+	//void AddModel(class ModelComponent* model);
 
 	///// @brief モデルの削除
 	///// シーンのモデルの配列からモデルを削除する
@@ -117,9 +117,7 @@ public:
 
 	// ===== ゲッター・セッター =====//
 
-	SceneManager& GetManager() { return _manager; }
 	void Name(const std::string& name) { _name = name; }
-	const SceneManager& GetManager() const { return _manager; }
 	const STATE State() { return _state; }
 
 	void State(STATE state) { _state = state; }
@@ -166,10 +164,7 @@ protected:
 	//// ===== スプライト ===== //
 	//std::vector<SpriteComponent*> _sprites;	  ///< スプライトの配列
 	//std::vector<MeshComponent*> _meshes;	  ///< メッシュの配列
-	//std::vector<ModelComponent*> _models;	  ///< モデルの配列
-
-	SceneManager& _manager;			 ///< シーンマネージャー	
-
+	
 	STATE _state;					 ///< シーンの状態
 	bool _isUpdating;				 ///< 更新中かどうか	
 	std::string _name;               ///< シーンの名前
@@ -178,27 +173,27 @@ protected:
 
 
 template <typename T, typename... Args>
-T& Scene::CreateGameObject(Args&&... args) {
+T* Scene::CreateGameObject(Args&&... args) {
 	std::unique_ptr<T> object = std::make_unique<T>(*this, std::forward<Args>(args)...);
-	T& objRef = *object;
+	T* rawPtr = object.get();
 	if (_isUpdating) {
 		_pendingObjects.emplace_back(std::move(object));
 	}
 	else {
 		_objects.emplace_back(std::move(object));
 	}
-	return objRef;
+	return rawPtr;
 }
 
 template <typename T, typename... Args>
-T& Scene::CreateChildObject(class GameObject* parent, Args&&... args) {
+T* Scene::CreateChildObject(class GameObject* parent, Args&&... args) {
 	std::unique_ptr<T> object = std::make_unique<T>(parent, std::forward<Args>(args)...);
-	T& objRef = *object;
+	T* rawPtr = object.get();
 	if (_isUpdating) {
 		_pendingObjects.emplace_back(std::move(object));
 	}
 	else {
 		_objects.emplace_back(std::move(object));
 	}
-	return objRef;
+	return rawPtr;
 }

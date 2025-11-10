@@ -2,6 +2,8 @@
 #include <unordered_map>
 #include <string>
 #include <SDL3/SDL.h>
+#include <memory>
+#include "Resource/Model.h"
 
 /*
 使用方法
@@ -19,7 +21,7 @@ public:
 
     // ===== コンストラクタ・デストラクタ ===== //
 
-    AssetManager(Game& game) : _game(game) {}
+    AssetManager(class Game& game) : _game(game) {}
 
     ~AssetManager() {
         UnloadAll(); // 全アセットをアンロード
@@ -42,17 +44,16 @@ public:
         }
 
         // 新しいインスタンスを作成
-        T* asset = new T(_game);
+        std::shared_ptr<T> asset = std::make_shared<T>();
 
         // ロード処理
         if (asset->Load(fileName)) { // ファイルからアセットをロード
             // ロード成功
-            _assets.emplace(assetName, std::move(asset)); // アセットをマップに追加
+            _assets.emplace(assetName, asset); // アセットをマップに追加
             return true; // 成功
         }
         else {
             // ロード失敗
-            delete asset; // メモリを解放
             SDL_Log("Failed to load asset %s from file %s", assetName.c_str(), fileName.c_str()); // ログ出力
             return false; // 失敗
         }
@@ -62,16 +63,17 @@ public:
     /// アセットの参照を返し、存在しない場合はダミーを返す
     /// @param assetName 
     /// @return 
-    T* Get(const std::string& assetName) const { // アセット名を受け取る
-
-        auto iter = _assets.find(assetName); // アセットを検索
+    std::shared_ptr<T> Get(const std::string& assetName) { // アセット名を受け取る
+        auto iter = _assets.find(assetName);
         if (iter != _assets.end()) {
-            return iter->second.get(); // アセットのポインタを返す
+            return iter->second; // アセットが存在する場合は参照を返す
         }
         else {
-            return nullptr; // 存在しない場合はnullptrを返す
+            SDL_Log("Asset %s not found", assetName.c_str());
+            static std::shared_ptr<T> dummy = std::make_shared<T>(); // ダミーアセットを作成
+            return dummy; // ダミーアセットを返す
         }
-    }
+	}
 
     /// @brief アセットのアンロード
     /// 
@@ -80,7 +82,7 @@ public:
         SDL_Log("Unload");
         auto iter = _assets.find(assetName);
         if (iter != _assets.end()) {
-            iter->secomd.reset(); // メモリを解放
+            iter->second.reset(); // メモリを解放
             _assets.erase(iter); // マップから削除
         }
     }
@@ -98,5 +100,46 @@ protected:
 
     class Game& _game; // ゲームクラスへの参照
 
-    std::unordered_map<std::string, std::unique_ptr<T>> _assets; // アセットを格納するマップ
+    std::unordered_map<std::string, std::shared_ptr<T>> _assets; // アセットを格納するマップ
 };
+
+// シングルトン、モデル、テクスチャ、サウンドなどのアセットマネージャーを定義
+
+using ModelManager = AssetManager<class Model>;
+//using TextureManager = AssetManager<class Texture2D>;
+//using SoundManager = AssetManager<class Sound>;
+//using ShaderManager = AssetManager<class Shader>;
+
+class AssetManagers {
+public:
+    // ModelManager& Models() { return _modelManager; }
+    //TextureManager& Textures() { return _textureManager; }
+    //SoundManager& Sounds() { return _soundManager; }
+    //ShaderManager& Shaders() { return _shaderManager; }
+    
+private:
+    AssetManagers(class Game& game) {
+    }
+    ~AssetManagers() {}
+    static AssetManagers* s_instance;
+    //ModelManager _modelManager;
+    //TextureManager _textureManager;
+    //SoundManager _soundManager;
+    //ShaderManager _shaderManager;
+
+public:
+    static void CreateInstance(class Game& game) {
+        if (!s_instance) {
+            s_instance = new AssetManagers(game);
+        }
+    }
+    static void DestroyInstance() {
+        delete s_instance;
+        s_instance = nullptr;
+    }
+    static AssetManagers& Instance() {
+        return *s_instance;
+    }
+};
+
+#define ASSETS AssetManagers::Instance()

@@ -6,7 +6,7 @@ class LoadingScene : public Scene {
 public:
 	LoadingScene(class SceneManager& manager);
 	~LoadingScene();
-	bool Initialize() override;
+	//bool Initialize() override;
 	void Shutdown() override;
 
 	void LoadAssets(const rapidjson::Value& inObj);

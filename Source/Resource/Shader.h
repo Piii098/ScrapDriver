@@ -1,16 +1,8 @@
 #pragma once
-#include "DirectX.h"
-#include "Direct3D.h"
+#include "DirectX/DirectX.h"
+#include "DirectX/Direct3D.h"
 #include "Framework.h"
 #include "Utility/Math.h"
-
-// シェーダーの定数バッファ構造体
-struct MatrixBuffer
-{
-	Matrix4x4 world;
-	Matrix4x4 view;
-	Matrix4x4 projection;
-};
 
 class Shader {
 public:
