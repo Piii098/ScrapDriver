@@ -63,7 +63,7 @@ public:
 	//bool IsAllButton() const;
 
 	bool IsRealtive() const { return _isRelative; }
-	void IsRelative(bool flag) { _isRelative = flag; }
+	void IsRelative(bool flag) { _isRelative = flag;  }
 
 private:
 	Vector2 _position;			///< マウスの座標

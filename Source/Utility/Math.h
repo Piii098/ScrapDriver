@@ -125,6 +125,8 @@ namespace Math {
 		return glm::radians(degrees);
 	}
 
+	// Pi定数
+	constexpr float Pi = glm::pi<float>();
 };
 using namespace DirectX;
 
@@ -221,7 +223,6 @@ struct Vector3 : public XMFLOAT3 {
 		return *this;
 	}
 
-
 	//キャスト
 	operator XMVECTOR() const {
 		return XMLoadFloat3(this);
@@ -302,6 +303,11 @@ struct Quaternion : public XMFLOAT4
 		XMVECTOR temp = other;
 		XMStoreFloat4(this, temp);
 	}
+
+	Quaternion(const Vector3& axis, float angle) {
+		XMVECTOR q = XMQuaternionRotationAxis(XMVECTOR(axis), angle);
+		XMStoreFloat4(this, q);
+	}
 	
 	// 代入演算子
 	Quaternion& operator=(const XMVECTOR& other) {
@@ -372,6 +378,10 @@ struct Quaternion : public XMFLOAT4
 
 	static Quaternion FromAxisAngle(float x, float y, float z, float angle) {
 		return Quaternion(XMQuaternionRotationAxis(XMVectorSet(x, y, z, 0.0f), angle));
+	}
+
+	static Quaternion Concatenate(const Quaternion& q1, const Quaternion& q2) {
+		return Quaternion(XMQuaternionMultiply(XMVECTOR(q1), XMVECTOR(q2)));
 	}
 
 	//
@@ -477,6 +487,10 @@ struct Matrix4x4 : public XMMATRIX
 	}
 	void Set(const XMFLOAT4X4* other) {
 		*this = XMLoadFloat4x4(other);
+	}
+
+	Matrix4x4 Invert() const {
+		return Matrix4x4(XMMatrixInverse(nullptr, *this));
 	}
 
 	static Matrix4x4 CreateScale(const Vector3& scale) {

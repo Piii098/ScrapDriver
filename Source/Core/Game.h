@@ -29,6 +29,8 @@ private:
 	
 	static Game* s_instance;
 
+	void SetAction();
+
 
 public:
 

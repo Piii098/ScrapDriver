@@ -231,10 +231,10 @@
     <ClInclude Include="Source\Scene\TestScene.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
     <None Include="Assets\Shader\TestType.hlsli">
       <Filter>Shader</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Assets\Shader\SimplePS.hlsl">

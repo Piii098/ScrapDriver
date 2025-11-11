@@ -27,7 +27,7 @@ public:
     /// コンポーネントと独自の入力処理を呼び出す
     /// シーンより呼び出される
     /// @param input 入力情報
-    void Input(const class InputAction& input);
+    void Input(class InputAction& input);
 
     /// @brief 更新処理
     /// コンポーネントと独自の入力処理を呼び出す
@@ -111,22 +111,22 @@ public:
     Vector3& Position() { _recomputeWorldTransform = true; MarkChildrenDirty(); return _position; }
     Vector2 Position2D() const { return Vector2(_position.x, _position.y); }
 	Quaternion& Rotation() { _recomputeWorldTransform = true; MarkChildrenDirty(); return _rotation; }
-    //const Vector3& GetRight() { return Vector3::Transform(Vector3::UnitX, _rotation); } ///< 右方向ベクトルを取得する
-    //const Vector3& GetForward() { return Vector3::Transform(Vector3::UnitZ, _rotation); } ///< 前方ベクトルを取得する
+    const Vector3& GetRight() { return Vector3::Transform(Vector3::UnitX, _rotation); } ///< 右方向ベクトルを取得する
+    const Vector3& GetForward() { return Vector3::Transform(Vector3::UnitZ, _rotation); } ///< 前方ベクトルを取得する
 
-private:
+protected:
 
     // ===== ループ処理 ===== //
 
     /// @brief コンポーネントの入力処理
     /// アクティブ状態のコンポーネントの入力処理を行う
     /// @param input 入力情報
-    void InputComponents(const InputAction& input);
+    void InputComponents(InputAction& input);
 
     /// @brief オブジェクトの入力処理
     /// 仮想関数、オブジェクト独自の入力処理を行う
     /// @param input 
-    virtual void InputObject(const InputAction& input) {};
+    virtual void InputObject(InputAction& input) {};
 
     /// @brief コンポーネントの更新処理
     /// アクティブ状態のコンポーネントの更新処理を行う

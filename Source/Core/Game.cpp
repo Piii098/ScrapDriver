@@ -47,6 +47,7 @@ bool Game::Initalize() {
 
 	_inputAction = new InputAction(*_inputManager);
 
+	SetAction();
 
 	AssetManagers::CreateInstance(*this);
 
@@ -84,6 +85,31 @@ void Game::Input() {
 	_inputManager->Update(0.1f);
 
 	SCENEMANAGER.Input(*_inputAction);
+}
+
+void Game::SetAction() {
+
+	_inputAction->MapAction("Left", SDL_SCANCODE_A);
+	_inputAction->MapAction("Right", SDL_SCANCODE_D);
+	_inputAction->MapAction("Up", SDL_SCANCODE_W);
+	_inputAction->MapAction("Down", SDL_SCANCODE_S);
+	_inputAction->MapAction("Select", SDL_SCANCODE_SPACE);
+	_inputAction->MapAction("Jump", SDL_SCANCODE_SPACE);
+	_inputAction->MapAction("Menu", SDL_SCANCODE_TAB);
+
+	_inputAction->MapAction("Left", SDL_GAMEPAD_BUTTON_DPAD_LEFT);
+	_inputAction->MapAction("Right", SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
+	_inputAction->MapAction("Up", SDL_GAMEPAD_BUTTON_DPAD_UP);
+	_inputAction->MapAction("Down", SDL_GAMEPAD_BUTTON_DPAD_DOWN);
+	_inputAction->MapAction("Select", SDL_GAMEPAD_BUTTON_SOUTH);
+	_inputAction->MapAction("Jump", SDL_GAMEPAD_BUTTON_SOUTH);
+	_inputAction->MapAction("Menu", SDL_GAMEPAD_BUTTON_BACK);
+
+	_inputAction->MapActionAxis("Horizontal", SDL_SCANCODE_A, SDL_SCANCODE_D);
+	_inputAction->MapActionAxis("Vertical", SDL_SCANCODE_S, SDL_SCANCODE_W);
+
+	_inputAction->MapActionAxis("Horizontal", SDL_GAMEPAD_AXIS_LEFTX);
+	_inputAction->MapActionAxis("Vertical", SDL_GAMEPAD_AXIS_LEFTY);
 }
 
 void Game::Update() {

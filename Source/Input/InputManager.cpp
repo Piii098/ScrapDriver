@@ -3,6 +3,7 @@
 #include "Input/InputManager.h"
 #include <SDL3/SDL.h>
 #include "Core/Game.h"
+#include "DirectX/Direct3D.h"
 
 
 BUTTON_STATE KeyboardState::GetKeyState(SDL_Scancode key) const {
@@ -132,6 +133,8 @@ bool InputManager::Initialize() {
 	// マウスの状態を初期化
 	_state.mouse._currentButtons = 0;
 	_state.mouse._previousButtons = 0;
+
+	_window = DIRECT3D.Window();
 
 	// コントローラの状態を初期化
 	// マッピングファイルを読み込む（エラーでも続行）

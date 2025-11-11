@@ -68,7 +68,7 @@ public:
 	bool IsMouseButtonDown(SDL_MouseButton button) const;
 	bool IsMouseButtonUp(SDL_MouseButton button) const;
 	bool IsMouseButton(SDL_MouseButton button) const;
-	//Vector2 GetMousePosition() const;
+	Vector2 GetMousePosition() const;
 	void SetRelativeMouseMode(bool flag);
 
 	bool IsGamepadButtonDown(SDL_GamepadButton button) const;

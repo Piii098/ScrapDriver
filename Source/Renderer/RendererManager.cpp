@@ -6,7 +6,7 @@
 #include "DirectX/DescriptorHeap.h"
 #include "Utility/Math.h"
 #include <d3dcompiler.h>
-#include "Component/Camera.h"
+#include "Component/CameraComponent.h"
 
 RendererManager::RendererManager(class Game& game)
 	: _game(game), _direct3D(nullptr), _shader(nullptr), _camera(nullptr),

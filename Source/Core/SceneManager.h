@@ -19,7 +19,7 @@ public:
     std::shared_ptr<Scene> GetScene(const std::string& name) const;
     
     // 更新とレンダリング
-	void Input(const class InputAction& input);
+	void Input(class InputAction& input);
     void Update(float deltaTime);
     void Render();
     void Cleanup();

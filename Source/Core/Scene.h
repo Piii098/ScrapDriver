@@ -36,7 +36,7 @@ public:
 	/// @brief 入力処理
 	/// ゲームオブジェクト、シーンの入力処理を行う
 	/// @param input 入力情報
-	void Input(const class InputAction& input);
+	void Input(class InputAction& input);
 
 	/// @brief 更新処理
 	/// ゲームオブジェクト、シーンの更新処理を行う

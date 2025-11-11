@@ -165,9 +165,9 @@ bool InputAction::IsMouseButton(SDL_MouseButton button) const {
 	return _inputManager.GetState().mouse.GetButtonState(button) == BUTTON_STATE::PRESS;
 }
 
-//Vector2 InputAction::GetMousePosition() const {
-//	return _inputManager.GetState().mouse.GetPosition();
-//}
+Vector2 InputAction::GetMousePosition() const {
+	return _inputManager.GetState().mouse.GetPosition();
+}
 
 void InputAction::SetRelativeMouseMode(bool isRelative) {
 	SDL_SetWindowRelativeMouseMode(_inputManager.GetWindow(), isRelative);

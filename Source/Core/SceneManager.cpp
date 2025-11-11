@@ -6,7 +6,7 @@
 #include "Component/TestComponent.h"
 #include "Component/PlaneComponent.h"
 #include "Component/RaytracingModelComponent.h"
-#include "Component/Camera.h"
+#include "Component/CameraComponent.h"
 #include "Scene/TestScene.h"
 
 SceneManager* SceneManager::s_instance = nullptr;
@@ -90,7 +90,7 @@ std::shared_ptr<Scene> SceneManager::GetScene(const std::string& name) const {
     return nullptr;
 }
 
-void SceneManager::Input(const InputAction& input) {
+void SceneManager::Input(InputAction& input) {
     if (_currentScene) {
         _currentScene->Input(input);
     }

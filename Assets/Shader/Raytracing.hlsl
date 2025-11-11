@@ -28,7 +28,7 @@ cbuffer MaterialData : register(b1)
     float4 lightColor;          
 }
 
-#define MAX_RAY_RECURSION_DEPTH 3  // 2→3に変更（5以上は推奨しない）
+#define MAX_RAY_RECURSION_DEPTH 5  // 2→3に変更（5以上は推奨しない）
 
 struct RayPayload
 {
@@ -216,31 +216,34 @@ void MyClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersection
     
     float3 localColor = ambient + diffuse + specular;
     
-    // 反射処理の最適化
+    // フレネル効果を適用
     float3 reflectedColor = float3(0, 0, 0);
     
-    float minReflectance = 0.1f;
-    
-    // 表面のみ反射を計算
     if (isFrontFace && 
         payload.recursionDepth < MAX_RAY_RECURSION_DEPTH && 
-        reflectanceCoef > minReflectance)
+        reflectanceCoef > 0.1f)
     {
         float3 reflectDir = reflect(WorldRayDirection(), normal);
         
-        // 反射方向が正しいかチェック
         if (dot(reflectDir, normal) > 0.0f) {
             float4 reflectionResult = TraceReflectionRay(
-                hitPosition + normal * 0.01f, // オフセットを増やす
+                hitPosition + normal * 0.01f,
                 reflectDir,
                 payload.recursionDepth
             );
-            
             reflectedColor = reflectionResult.rgb;
         }
     }
     
-    float3 finalColor = lerp(localColor, reflectedColor, reflectanceCoef);
+    // フレネル係数を計算
+    float3 f0 = float3(reflectanceCoef, reflectanceCoef, reflectanceCoef);
+    float3 fresnel = FresnelReflectanceSchlick(WorldRayDirection(), normal, f0);
+    
+    // エネルギー保存則を考慮した合成
+    // 反射が増えれば拡散が減る
+    float3 kD = 1.0f - fresnel; // 拡散反射の係数
+    
+    float3 finalColor = kD * localColor + fresnel * reflectedColor;
     
     payload.color = float4(finalColor, 1.0f);
 }

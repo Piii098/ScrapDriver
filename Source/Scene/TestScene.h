@@ -15,5 +15,5 @@ private:
 	void LoadData() override;
 	void LoadObjects() override;
 
-	class GameObject* _camera;
+	class CameraObject* _camera;
 };

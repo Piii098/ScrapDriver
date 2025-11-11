@@ -2,7 +2,7 @@
 #include "DirectX/RaytracingRootSignature.h"
 #include "DirectX/DescriptorHeap.h"
 #include "DirectX/Texture2D.h"
-#include "Component/Camera.h"
+#include "Component/CameraComponent.h"
 
 RaytracingManager::RaytracingManager() : _isValid(false) {
 }
@@ -170,7 +170,7 @@ bool RaytracingManager::CreateMaterialBuffer() {
 }
 
 void RaytracingManager::UpdateCameraBuffer() {
-    Camera* activeCamera = Camera::GetActiveCamera();
+    CameraComponent* activeCamera = CameraComponent::GetActiveCamera();
     
     RaytracingCameraData cameraData = {};
     
@@ -199,11 +199,11 @@ void RaytracingManager::UpdateCameraBuffer() {
 void RaytracingManager::UpdateMaterialBuffer() {
     RaytracingMaterialData materialData = {};
     
-    // デフォルト値を設定
-    materialData.reflectanceCoef = 0.5f;
-    materialData.diffuseCoef = 0.8f;
-    materialData.specularCoef = 0.3f;
-    materialData.specularPower = 32.0f;
+    // より現実的な値に調整
+    materialData.reflectanceCoef = 0.3f;  // 0.9 → 0.5に変更
+    materialData.diffuseCoef = 0.9f;      // 0.3 → 0.5に変更（reflectanceCoefと足して1.0）
+    materialData.specularCoef = 0.8f;     // 0.8 → 0.3に変更
+    materialData.specularPower = 64.0f;
     materialData.lightPosition = Vector3(2.0f, 5.0f, -3.0f);
     materialData.lightColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
     

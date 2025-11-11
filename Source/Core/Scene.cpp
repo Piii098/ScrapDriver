@@ -39,7 +39,7 @@ bool Scene::Initialize(const std::string& name) {
  * シーンがアクティブ状態かつ、ゲームオブジェクトがアクティブ状態の場合
  * ゲームオブジェクトの入力処理を行う
  */
-void Scene::Input(const InputAction& input) {
+void Scene::Input(InputAction& input) {
 
 	if (_state != STATE::ACTIVE) return;
 

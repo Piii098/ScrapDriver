@@ -53,6 +53,8 @@ public:
 	UINT CurrentBackBufferIndex() const { return _currentBackBufferIndex; }
 	ID3D12Resource* CurrentRenderTarget() const { return _currentRenderTarget; }
 
+	SDL_Window* Window() const { return _window; }
+
 	int Width() const { return _width; }
 	int Height() const { return _height; }
 	void Width(int width) { _width = width; }

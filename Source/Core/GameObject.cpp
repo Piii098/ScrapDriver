@@ -81,7 +81,7 @@ void GameObject::Cleanup() {
  * コンポーネントと独自の入力処理を呼び出す
  * アクティブ状態でなければ処理しない
  */
-void GameObject::Input(const InputAction& input) {
+void GameObject::Input(InputAction& input) {
 
 	if (_state != STATE::ACTIVE) return;
 
@@ -300,7 +300,7 @@ void GameObject::AddComponent(std::unique_ptr<Component> component) {
  *
  * コンポーネントの更新処理を呼び出す
  */
-void GameObject::InputComponents(const InputAction& input) {
+void GameObject::InputComponents(InputAction& input) {
 	for (auto& comp : _components) {
 		if (comp->State() == STATE::ACTIVE) { // アクティブ状態のコンポーネントのみ入力処理
 			comp->ProcessInput(input);
