@@ -30,6 +30,7 @@ public:
 
     // FPS カメラ制御用
     void SetPitchSpeed(float speed) { _pitchSpeed = speed; }
+    void AddPitch(float deltaPitch) { _pitch += deltaPitch; } // 直接pitchに加算（マウス入力用）
     void SetMaxPitch(float max) { _maxPitch = max; }
     void SetPitch(float pitch) { _pitch = pitch; }
     

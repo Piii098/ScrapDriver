@@ -62,6 +62,12 @@ bool RaytracingManager::Initialize() {
         return false;
     }
 
+    // メッシュマテリアル用Structured Buffer作成
+    if (!CreateMeshMaterialBuffer()) {
+        SDL_Log("Failed to create mesh material buffer");
+        return false;
+    }
+
     _isValid = true;
     SDL_Log("RaytracingManager initialized successfully");
     return true;
@@ -205,6 +211,7 @@ void RaytracingManager::UpdateMaterialBuffer() {
     materialData.specularCoef = 0.8f;     // 0.8 → 0.3に変更
     materialData.specularPower = 64.0f;
     materialData.lightPosition = Vector3(2.0f, 5.0f, -3.0f);
+    materialData.ambientIntensity = 0.45f; // ベースを明るく（0.0〜1.0）
     materialData.lightColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
     
     // Constant Bufferにデータをコピー
@@ -240,6 +247,27 @@ int RaytracingManager::AddMesh(const std::vector<Vertex>& vertices, const std::v
     _meshVertices.push_back(meshVertices);
     _needsRebuild = true;
     
+    // デフォルトマテリアルを追加
+    PerMeshMaterialData defaultMaterial = {};
+    defaultMaterial.baseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+    defaultMaterial.metallic = 0.0f;
+    defaultMaterial.roughness = 0.5f;
+    defaultMaterial.reflectance = 0.3f;
+    defaultMaterial.materialType = 0; // Diffuse
+    defaultMaterial.uvScale = Vector2(2.0f, 2.0f); // デフォルトUVスケール
+    
+    while (static_cast<int>(_meshMaterials.size()) <= meshId) {
+        _meshMaterials.push_back(defaultMaterial);
+    }
+    
+    // デフォルトテクスチャ（白）を追加
+    while (static_cast<int>(_meshTextures.size()) <= meshId) {
+        _meshTextures.push_back(nullptr);
+        _meshTextureIndices.push_back(static_cast<UINT>(-1));
+    }
+    
+    UpdateMeshMaterialBuffer();
+    
     SDL_Log("Mesh data stored with ID=%d, will build AS on first render frame", meshId);
     return meshId;
 }
@@ -273,6 +301,45 @@ bool RaytracingManager::UpdateMesh(int meshId, const std::vector<Vertex>& vertic
     return true;
 }
 
+void RaytracingManager::SetMeshTexture(int meshId, Texture2D* texture) {
+    if (meshId < 0) {
+        SDL_Log("Invalid mesh ID: %d", meshId);
+        return;
+    }
+    
+    // 配列サイズを拡張
+    while (static_cast<int>(_meshTextures.size()) <= meshId) {
+        _meshTextures.push_back(nullptr);
+        _meshTextureIndices.push_back(static_cast<UINT>(-1));
+    }
+    
+    _meshTextures[meshId] = texture;
+    
+    if (texture && texture->IsValid()) {
+        if (texture->HasRaytracingIndex()) {
+            _meshTextureIndices[meshId] = texture->GetRaytracingIndex();
+            SDL_Log("Mesh %d texture set: raytracing index %d", meshId, texture->GetRaytracingIndex());
+        } else {
+            SDL_Log("Mesh %d texture has no raytracing index", meshId);
+            _meshTextureIndices[meshId] = static_cast<UINT>(-1);
+        }
+    } else {
+        // デフォルトの白テクスチャを使用（無効にしてテスト）
+        _meshTextureIndices[meshId] = static_cast<UINT>(-1);
+        SDL_Log("Mesh %d has no valid texture (index set to -1)", meshId);
+        /*
+        Texture2D* whiteTexture = Texture2D::GetWhite();
+        if (whiteTexture && whiteTexture->IsValid() && whiteTexture->HasRaytracingIndex()) {
+            _meshTextureIndices[meshId] = whiteTexture->GetRaytracingIndex();
+            SDL_Log("Mesh %d using white texture: raytracing index %d", meshId, whiteTexture->GetRaytracingIndex());
+        } else {
+            _meshTextureIndices[meshId] = static_cast<UINT>(-1);
+            SDL_Log("Mesh %d has no valid texture (index set to -1)", meshId);
+        }
+        */
+    }
+}
+
 void RaytracingManager::SetTexture(Texture2D* texture) {
     _currentTexture = texture;
     if (texture) {
@@ -290,32 +357,12 @@ void RaytracingManager::Render() {
     if (_needsRebuild && !_meshVertices.empty() && (frameCount % 10 == 0)) {
         SDL_Log("Building Acceleration Structure on render frame...");
         
-        // 全てのメッシュを1つの配列に結合
-        std::vector<float> combinedVertices;
-        size_t totalVertices = 0;
-        for (const auto& mesh : _meshVertices) {
-            totalVertices += mesh.size();
-        }
-        
-        if (totalVertices == 0) {
-            SDL_Log("No vertices to build AS with");
-            return;
-        }
-        
-        combinedVertices.reserve(totalVertices);
-        
-        for (const auto& mesh : _meshVertices) {
-            combinedVertices.insert(combinedVertices.end(), mesh.begin(), mesh.end());
-        }
-        
-        SDL_Log("Combined %zu meshes into %zu total vertices", _meshVertices.size(), combinedVertices.size() / 3);
-        
-        // 結合されたメッシュでAcceleration Structureを構築
+        // 複数メッシュ対応のAcceleration Structureを構築
         if (!_accelerationStructure) {
             _accelerationStructure = std::make_unique<AccelerationStructure>();
         }
         
-        if (_accelerationStructure->BuildSimple(combinedVertices.data(), static_cast<int>(combinedVertices.size() / 3))) {
+        if (_accelerationStructure->BuildMultipleMeshes(_meshVertices)) {
             SDL_Log("Acceleration Structure built successfully with %zu meshes", _meshVertices.size());
             _needsRebuild = false;
         } else {
@@ -351,18 +398,23 @@ void RaytracingManager::Render() {
     commandList.SetComputeRootDescriptorTable(0, _output->GetUAVHandle());
     commandList.SetComputeRootShaderResourceView(1, _accelerationStructure->GetTLAS()->GetGPUVirtualAddress());
     
-    // テクスチャをバインド
-    if (_currentTexture && _currentTexture->IsValid()) {
-        D3D12_GPU_DESCRIPTOR_HANDLE textureHandle = DESCRIPTORMANAGER.GetGPUHandleAt(_currentTexture->GetDescriptorIndex());
-        commandList.SetComputeRootDescriptorTable(2, textureHandle);
-        //SDL_Log("Texture bound to raytracing pipeline");
+    // DiffuseTexture (t1) をバインド
+    // 最初のメッシュのテクスチャを使用（単一オブジェクトテスト用）
+    Texture2D* diffuseTexture = nullptr;
+    if (!_meshTextures.empty() && _meshTextures[0] != nullptr) {
+        diffuseTexture = _meshTextures[0];
+        SDL_Log("Binding DiffuseTexture from mesh 0");
+    } else if (_currentTexture && _currentTexture->IsValid()) {
+        diffuseTexture = _currentTexture;
+        SDL_Log("Binding DiffuseTexture from _currentTexture");
     } else {
-        // デフォルトの白テクスチャを使用
-        Texture2D* whiteTexture = Texture2D::GetWhite();
-        if (whiteTexture && whiteTexture->IsValid()) {
-            D3D12_GPU_DESCRIPTOR_HANDLE textureHandle = DESCRIPTORMANAGER.GetGPUHandleAt(whiteTexture->GetDescriptorIndex());
-            commandList.SetComputeRootDescriptorTable(2, textureHandle);
-        }
+        diffuseTexture = Texture2D::GetWhite();
+        SDL_Log("Binding DiffuseTexture as white (fallback)");
+    }
+    
+    if (diffuseTexture && diffuseTexture->IsValid()) {
+        D3D12_GPU_DESCRIPTOR_HANDLE textureHandle = DESCRIPTORMANAGER.GetGPUHandleAt(diffuseTexture->GetDescriptorIndex());
+        commandList.SetComputeRootDescriptorTable(2, textureHandle);
     }
     
     // カメラConstant Bufferをバインド
@@ -370,6 +422,29 @@ void RaytracingManager::Render() {
     
     // Material Constant Bufferをバインド
     commandList.SetComputeRootConstantBufferView(4, _materialBuffer->GetGPUVirtualAddress());
+    
+    // メッシュマテリアルStructured Bufferをバインド
+    if (_meshMaterialSRVIndex != static_cast<UINT>(-1)) {
+        D3D12_GPU_DESCRIPTOR_HANDLE meshMaterialHandle = DESCRIPTORMANAGER.GetGPUHandleAt(_meshMaterialSRVIndex);
+        commandList.SetComputeRootDescriptorTable(5, meshMaterialHandle);
+    }
+    
+    // レイトレーシング用テクスチャ配列をバインド（連続した領域から）
+    UINT raytracingTextureBase = DESCRIPTORMANAGER.GetRaytracingTextureArrayBaseIndex();
+    UINT raytracingTextureCount = DESCRIPTORMANAGER.GetRaytracingTextureCount();
+    D3D12_GPU_DESCRIPTOR_HANDLE textureArrayHandle = DESCRIPTORMANAGER.GetGPUHandleAt(raytracingTextureBase);
+    commandList.SetComputeRootDescriptorTable(6, textureArrayHandle);
+    
+    // デバッグ用（初回のみログ出力）
+    static bool logged = false;
+    if (!logged) {
+        SDL_Log("=== RAYTRACING TEXTURE ARRAY BIND ===");
+        SDL_Log("  Base Index: %d", raytracingTextureBase);
+        SDL_Log("  Texture Count: %d", raytracingTextureCount);
+        SDL_Log("  GPU Handle: %llu", textureArrayHandle.ptr);
+        SDL_Log("  Root Parameter: 6 (Descriptor Table)");
+        logged = true;
+    }
 
     // DispatchRays設定
     D3D12_DISPATCH_RAYS_DESC dispatchDesc = {};
@@ -399,4 +474,104 @@ void RaytracingManager::Render() {
     // 結果をバックバッファにコピー
     _output->CopyToBackBuffer(DIRECT3D.CurrentRenderTarget());
     
+}
+
+bool RaytracingManager::CreateMeshMaterialBuffer() {
+    // 初期状態では1つのデフォルトマテリアルを作成
+    PerMeshMaterialData defaultMaterial = {};
+    defaultMaterial.baseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+    defaultMaterial.metallic = 0.0f;
+    defaultMaterial.roughness = 0.5f;
+    defaultMaterial.reflectance = 0.5f;
+    defaultMaterial.materialType = 0; // Diffuse
+    defaultMaterial.uvScale = Vector2(1.0f, 1.0f);
+    
+    _meshMaterials.push_back(defaultMaterial);
+    
+    // Structured Buffer用のヒーププロパティ
+    auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+    
+    // 最大1024メッシュ分を確保（動的に拡張可能にする場合は別途対応が必要）
+    UINT bufferSize = sizeof(PerMeshMaterialData) * 1024;
+    auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
+    
+    HRESULT hr = DIRECT3D.Device().CreateCommittedResource(
+        &heapProps,
+        D3D12_HEAP_FLAG_NONE,
+        &resourceDesc,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(&_meshMaterialBuffer));
+    
+    if (FAILED(hr)) {
+        SDL_Log("Failed to create mesh material buffer");
+        return false;
+    }
+    
+    // データをコピー
+    void* mapped = nullptr;
+    hr = _meshMaterialBuffer->Map(0, nullptr, &mapped);
+    if (FAILED(hr)) {
+        SDL_Log("Failed to map mesh material buffer");
+        return false;
+    }
+    
+    memcpy(mapped, _meshMaterials.data(), sizeof(PerMeshMaterialData) * _meshMaterials.size());
+    _meshMaterialBuffer->Unmap(0, nullptr);
+    
+    // SRVを作成
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Buffer.FirstElement = 0;
+    srvDesc.Buffer.NumElements = 1024;
+    srvDesc.Buffer.StructureByteStride = sizeof(PerMeshMaterialData);
+    srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+    
+    _meshMaterialSRVIndex = DESCRIPTORMANAGER.AllocateDescriptor();
+    D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = DESCRIPTORMANAGER.GetCPUHandleAt(_meshMaterialSRVIndex);
+    
+    DIRECT3D.Device().CreateShaderResourceView(
+        _meshMaterialBuffer.Get(),
+        &srvDesc,
+        cpuHandle);
+    
+    SDL_Log("Mesh material structured buffer created successfully");
+    return true;
+}
+
+void RaytracingManager::UpdateMeshMaterialBuffer() {
+    void* mapped = nullptr;
+    HRESULT hr = _meshMaterialBuffer->Map(0, nullptr, &mapped);
+    if (SUCCEEDED(hr)) {
+        memcpy(mapped, _meshMaterials.data(), sizeof(PerMeshMaterialData) * _meshMaterials.size());
+        _meshMaterialBuffer->Unmap(0, nullptr);
+    }
+}
+
+void RaytracingManager::SetMeshMaterial(int meshId, const PerMeshMaterialData& material) {
+    if (meshId < 0) {
+        SDL_Log("Invalid mesh ID: %d", meshId);
+        return;
+    }
+    
+    // 配列サイズを拡張
+    while (static_cast<int>(_meshMaterials.size()) <= meshId) {
+        PerMeshMaterialData defaultMaterial = {};
+        defaultMaterial.baseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+        defaultMaterial.metallic = 0.0f;
+        defaultMaterial.roughness = 0.5f;
+        defaultMaterial.reflectance = 0.5f;
+        defaultMaterial.materialType = 0;
+        defaultMaterial.uvScale = Vector2(1.0f, 1.0f);
+        _meshMaterials.push_back(defaultMaterial);
+    }
+    
+    // マテリアルをそのまま使用（既に相対インデックスになっている）
+    _meshMaterials[meshId] = material;
+    UpdateMeshMaterialBuffer();
+    
+    SDL_Log("Mesh %d material updated: textureIndex=%u, baseColor=(%.2f,%.2f,%.2f)", 
+        meshId, material.textureIndex, material.baseColor.x, material.baseColor.y, material.baseColor.z);
 }

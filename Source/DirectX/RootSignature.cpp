@@ -5,31 +5,39 @@ RootSignature::RootSignature() {
 
 bool RootSignature::Initialize() {
     // ルートパラメータの配列を作成
-    D3D12_ROOT_PARAMETER rootParams[2] = {};
-    
+    D3D12_ROOT_PARAMETER rootParams[3] = {};
+
     // パラメータ0: テクスチャ (t0)
     D3D12_DESCRIPTOR_RANGE descRange0 = {};
     descRange0.NumDescriptors = 1;
     descRange0.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
     descRange0.BaseShaderRegister = 0; // t0
     descRange0.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-    
+
     rootParams[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
     rootParams[0].DescriptorTable.NumDescriptorRanges = 1;
     rootParams[0].DescriptorTable.pDescriptorRanges = &descRange0;
     rootParams[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-    
-    // パラメータ1: 定数バッファ (b0)
+
+    // パラメータ1: シーン定数バッファ (b0) : View / Projection など
     D3D12_DESCRIPTOR_RANGE descRange1 = {};
     descRange1.NumDescriptors = 1;
     descRange1.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
     descRange1.BaseShaderRegister = 0; // b0
     descRange1.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-    
+
     rootParams[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
     rootParams[1].DescriptorTable.NumDescriptorRanges = 1;
     rootParams[1].DescriptorTable.pDescriptorRanges = &descRange1;
     rootParams[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+
+    // パラメータ2: ワールド行列（ルート定数 b1）
+    // 32bit定数 16個 = 64byte (matrix 4x4)
+    rootParams[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+    rootParams[2].Constants.Num32BitValues = 16; // 行列分
+    rootParams[2].Constants.ShaderRegister = 1; // b1 として扱う
+    rootParams[2].Constants.RegisterSpace = 0;
+    rootParams[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
     
     // サンプラーの設定
     D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
@@ -43,7 +51,7 @@ bool RootSignature::Initialize() {
     
     // ルートシグネチャの設定
     D3D12_ROOT_SIGNATURE_DESC rootSigDesc = {};
-    rootSigDesc.NumParameters = 2;
+    rootSigDesc.NumParameters = 3; // 追加したワールド行列用ルート定数を含む
     rootSigDesc.pParameters = rootParams;
     rootSigDesc.NumStaticSamplers = 1;
     rootSigDesc.pStaticSamplers = &samplerDesc;

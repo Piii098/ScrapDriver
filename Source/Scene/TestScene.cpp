@@ -6,8 +6,12 @@
 #include "Component/PlaneComponent.h"
 #include "Component/RaytracingModelComponent.h"
 #include "Component/CameraComponent.h"
+#include "Component/LightComponent.h"
 #include "Input/InputAction.h"
 #include "GameObject/CameraObject.h"
+#include "LevelLoader/LevelLoader.h"
+#include "Core/Game.h"
+#include "Renderer/RendererManager.h"
 
 TestScene::TestScene()
 {
@@ -34,97 +38,147 @@ void TestScene::LoadData()
 
 void TestScene::LoadObjects()
 {
-	//// カメラを作成（少し上から見下ろす角度）
-	//_camera = CreateGameObject<GameObject>();
-	//_camera->Name("MainCamera");
-	//auto camera = _camera->CreateComponent<CameraComponent>();
-	//camera->SetFOV(60.0f);
-	//_camera->Position(0.0f, 10.0f, -4.0f); // 高い位置から
-	//_camera->Rotation(Quaternion::FromAxisAngle(Vector3::Up, Math::ToRadians(-90.0f))); // 少し下向き
-
+	// カメラ（CameraComponentが自動的にRendererManagerに認識される）
 	_camera = CreateGameObject<CameraObject>();
 	_camera->Name("MainCamera");
-	auto cameraComp = _camera->CreateComponent<CameraComponent>();
-	cameraComp->SetFOV(60.0f);
-	_camera->Position(0.0f, 3.0f, -8.0f); // 高い位置から
-	_camera->Rotation(Quaternion::FromAxisAngle(Vector3::Up, Math::ToRadians(-10.0f))); // 少し下向き
+	
+	// CameraObjectで既に作成されたCameraComponentを取得して設定
+	auto cameraComp = _camera->GetComponent<CameraComponent>();
+	if (cameraComp) {
+		cameraComp->SetFOV(60.0f);
+		cameraComp->SetAsActiveCamera(); // アクティブカメラに設定
+		SDL_Log("Camera control mode: %d", static_cast<int>(cameraComp->GetControlMode()));
+	}
+	_camera->Position(0.0f, 3.0f, -8.0f);
 
-	GameObject* gameObject = nullptr;
-	RaytracingModelComponent* rayModelComp = nullptr;
+	GameObject* object = nullptr;
+	ModelComponent* modelComp = nullptr;
+	PerMeshMaterialData material = {};
 
-	// gameObject = CreateChildObject<GameObject>(_camera);
-	// rayModelComp = gameObject->CreateComponent<RaytracingModelComponent>();
-	// gameObject->Position(0.0f, 0.0f, 0.0f);
-	// //gameObject->Rotation(Quaternion::FromAxisAngle(Vector3::UnitX, Math::ToRadians(90.0f)));
-	// gameObject->Scale(30.0f, 30.0f, 1.0f);
-	// rayModelComp->SetTexture("Assets/texture.jpg");
+	// 床オブジェクト
+	object = CreateGameObject<GameObject>();
+	object->Name("Floor");
+	object->Position(0.0f, -1.0f, 0.0f);
+	object->Rotation(Quaternion::FromAxisAngle(Vector3::UnitX, Math::ToRadians(90.0f)));
+	object->Scale(100.0f, 100.0f, 1.0f);
 
-	// 床（反射する鏡のような床）
-	gameObject = CreateGameObject<GameObject>();
-	gameObject->Name("Floor");
-	rayModelComp = gameObject->CreateComponent<RaytracingModelComponent>();
-	rayModelComp->SetTexture("Assets/texture.jpg");
-	gameObject->Position(0.0f, -1.0f, 0.0f);
-	gameObject->Rotation(Quaternion::FromAxisAngle(Vector3::UnitX, Math::ToRadians(90.0f))); // 水平
-	gameObject->Scale(100.0f, 100.0f, 1.0f); // 大きな床
+	modelComp = object->CreateComponent<ModelComponent>();
+	modelComp->LoadQuad();
+	modelComp->SetTexture("Assets/texture.jpg");
 
-	// 左の壁（鏡）
-	gameObject = CreateGameObject<GameObject>();
-	gameObject->Name("LeftMirror");
-	rayModelComp = gameObject->CreateComponent<RaytracingModelComponent>();
-	rayModelComp->SetTexture("Assets/texture.jpg");
-	gameObject->Position(-25.0f, 30.0f, 0.0f);
-	gameObject->Rotation(Quaternion::FromAxisAngle(Vector3::Up, Math::ToRadians(90.0f))); // 垂直に立てる
-	gameObject->Scale(50.0f, 50.0f, 1.0f); // 壁サイズ
+	material.baseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+	material.metallic = 0.0f;
+	material.roughness = 0.0f;
+	material.reflectance = 1.0f;
+	material.materialType = 0;
+	material.uvScale = Vector2(1.0f, 1.0f);
+	modelComp->SetMaterial(material);
 
-	//// 右の壁（鏡）
-	//gameObject = CreateGameObject<GameObject>();
-	//gameObject->Name("RightMirror");
-	//rayModelComp = gameObject->CreateComponent<RaytracingModelComponent>();
-	//rayModelComp->SetTexture("Assets/texture.jpg");
-	//gameObject->Position(2.5f, 0.5f, 0.0f);
-	//gameObject->Rotation(Quaternion::FromAxisAngle(Vector3::Up, Math::ToRadians(-90.0f))); // 垂直に立てる
-	//gameObject->Scale(3.0f, 2.0f, 1.0f); // 壁サイズ
+	// 壁オブジェクト
+	object = CreateGameObject<GameObject>();
+	object->Name("Wall");
+	object->Position(0.0f, 50.0f, 50.0f);
+	object->Rotation(Quaternion::FromAxisAngle(Vector3::UnitX, Math::ToRadians(0.0f)));
+	object->Scale(100.0f, 100.0f, 1.0f);
+	modelComp = object->CreateComponent<ModelComponent>();
+	modelComp->LoadQuad();
+	modelComp->SetTexture("Assets/Metal.jpg");
 
-	//// 奥の壁
-	//gameObject = CreateGameObject<GameObject>();
-	//gameObject->Name("BackWall");
-	//rayModelComp = gameObject->CreateComponent<RaytracingModelComponent>();
-	//rayModelComp->SetTexture("Assets/texture.jpg");
-	//gameObject->Position(0.0f, 0.5f, 2.0f);
-	//gameObject->Rotation(Quaternion::FromAxisAngle(Vector3::Right, Math::ToRadians(90.0f))); // 垂直に立てる
-	//gameObject->Scale(5.0f, 2.0f, 1.0f); // 壁サイズ
+	material.baseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+	material.metallic = 1.0f;
+	material.roughness = 0.9f;
+	material.reflectance = 0.2f;
+	material.materialType = 0;
+	material.uvScale = Vector2(1.0f, 1.0f);
+	modelComp->SetMaterial(material);
 
-	//// 中央のオブジェクト1（浮遊）
-	//gameObject = CreateGameObject<GameObject>();
-	//gameObject->Name("CenterObject1");
-	//rayModelComp = gameObject->CreateComponent<RaytracingModelComponent>();
-	//rayModelComp->SetTexture("Assets/texture.jpg");
-	//gameObject->Position(-0.8f, 0.3f, -0.5f);
-	//gameObject->Rotation(Quaternion::FromAxisAngle(Vector3::Up, Math::ToRadians(45.0f)));
-	//gameObject->Scale(0.8f, 0.8f, 0.8f);
+	// 壁オブジェクト
+	object = CreateGameObject<GameObject>();
+	object->Name("Wall");
+	object->Position(0.0f, 50.0f, -50.0f);
+	object->Rotation(Quaternion::FromAxisAngle(Vector3::UnitX, Math::ToRadians(0.0f)));
+	object->Scale(100.0f, 100.0f, 1.0f);
+	modelComp = object->CreateComponent<ModelComponent>();
+	modelComp->LoadQuad();
+	modelComp->SetTexture("Assets/texture.jpg");
 
-	//// 中央のオブジェクト2（浮遊）
-	//gameObject = CreateGameObject<GameObject>();
-	//gameObject->Name("CenterObject2");
-	//rayModelComp = gameObject->CreateComponent<RaytracingModelComponent>();
-	//rayModelComp->SetTexture("Assets/texture.jpg");
-	//gameObject->Position(0.8f, 0.5f, 0.2f);
-	//gameObject->Rotation(Quaternion::FromAxisAngle(Vector3::Up, Math::ToRadians(-30.0f)));
-	//gameObject->Scale(0.6f, 0.6f, 0.6f);
+	material.baseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+	material.metallic = 1.0f;
+	material.roughness = 0.9f;
+	material.reflectance = 0.2f;
+	material.materialType = 0;
+	material.uvScale = Vector2(1.0f, 1.0f);
+	modelComp->SetMaterial(material);
 
-	//// 天井の小さなオブジェクト
-	//gameObject = CreateGameObject<GameObject>();
-	//gameObject->Name("CeilingObject");
-	//rayModelComp = gameObject->CreateComponent<RaytracingModelComponent>();
-	//rayModelComp->SetTexture("Assets/texture.jpg");
-	//gameObject->Position(0.0f, 1.8f, 0.0f);
-	//gameObject->Rotation(Quaternion::FromAxisAngle(Vector3::Right, Math::ToRadians(180.0f)));
-	//gameObject->Scale(1.2f, 1.2f, 1.2f);
+	//// 反射テスト用の高メタリック球体
+	//GameObject* reflectiveSphere = CreateGameObject<GameObject>();
+	//reflectiveSphere->Name("ReflectiveSphere");
+	//reflectiveSphere->Position(2.0f, 1.0f, 2.0f);
+	//reflectiveSphere->Scale(1.0f, 1.0f, 1.0f);
+	//auto* sphereModel = reflectiveSphere->CreateComponent<ModelComponent>();
+	//sphereModel->LoadQuad(); // 球体メッシュがない場合はQuadで代用
+	//sphereModel->SetTexture("Assets/texture.jpg");
+	//PerMeshMaterialData sphereMaterial = {};
+	//sphereMaterial.baseColor = Vector4(0.9f, 0.9f, 1.0f, 1.0f); // 薄い青
+	//sphereMaterial.metallic = 0.95f;  // 高メタリック
+	//sphereMaterial.roughness = 0.05f; // 低ラフネス（鏡面）
+	//sphereMaterial.reflectance = 1.0f;
+	//sphereMaterial.materialType = 1; // Metal
+	//sphereMaterial.uvScale = Vector2(1.0f, 1.0f);
+	//sphereModel->SetMaterial(sphereMaterial);
+
+	//// 反射確認用の追加オブジェクト
+	//GameObject* coloredCube = CreateGameObject<GameObject>();
+	//coloredCube->Name("ColoredCube");
+	//coloredCube->Position(-2.0f, 1.0f, 3.0f);
+	//coloredCube->Scale(1.5f, 1.5f, 1.5f);
+	//auto* cubeModel = coloredCube->CreateComponent<ModelComponent>();
+	//cubeModel->LoadQuad();
+	//cubeModel->SetTexture("Assets/texture.jpg");
+	//PerMeshMaterialData cubeMaterial = {};
+	//cubeMaterial.baseColor = Vector4(1.0f, 0.2f, 0.2f, 1.0f); // 赤色
+	//cubeMaterial.metallic = 0.1f;
+	//cubeMaterial.roughness = 0.7f;
+	//cubeMaterial.reflectance = 0.3f;
+	//cubeMaterial.materialType = 0;
+	//cubeMaterial.uvScale = Vector2(1.0f, 1.0f);
+	//cubeModel->SetMaterial(cubeMaterial);
+
+	//// ガラス材質テスト用オブジェクト
+	//GameObject* glassObject = CreateGameObject<GameObject>();
+	//glassObject->Name("GlassObject");
+	//glassObject->Position(0.0f, 1.5f, 1.0f);
+	//glassObject->Scale(1.0f, 2.0f, 1.0f);
+	//auto* glassModel = glassObject->CreateComponent<ModelComponent>();
+	//glassModel->LoadQuad();
+	//glassModel->SetTexture("Assets/texture.jpg");
+	//PerMeshMaterialData glassMaterial = {};
+	//glassMaterial.baseColor = Vector4(0.9f, 1.0f, 0.9f, 0.8f); // 半透明の緑
+	//glassMaterial.metallic = 0.0f;
+	//glassMaterial.roughness = 0.0f; // 完全に滑らか
+	//glassMaterial.reflectance = 0.9f;
+	//glassMaterial.materialType = 2; // Glass
+	//glassMaterial.uvScale = Vector2(1.0f, 1.0f);
+	//glassModel->SetMaterial(glassMaterial);
+
 }
 
 void TestScene::InputScene(const class InputAction& input)
 {
+
+	if (input.IsKeyDown(SDL_SCANCODE_1)) {
+		RenderingMode currentMode = GAME.GetRendererManager().GetRenderingMode();
+		bool isRaytracing = (currentMode == RenderingMode::RAYTRACING);
+		if (isRaytracing) {
+			GAME.GetRendererManager().SetRenderingMode(RenderingMode::RASTERIZATION);
+			SDL_Log("Switched to RASTERIZATION mode");
+		}
+		else {
+			GAME.GetRendererManager().SetRenderingMode(RenderingMode::RAYTRACING);
+			SDL_Log("Switched to RAYTRACING mode");
+		}
+	}
+
 	//float moveSpeed = 0.5f;
 	//
 	//// カメラコンポーネントを取得

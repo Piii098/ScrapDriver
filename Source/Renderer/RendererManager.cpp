@@ -7,6 +7,7 @@
 #include "Utility/Math.h"
 #include <d3dcompiler.h>
 #include "Component/CameraComponent.h"
+#include "Component/ModelComponent.h"
 
 RendererManager::RendererManager(class Game& game)
 	: _game(game), _direct3D(nullptr), _shader(nullptr), _camera(nullptr),
@@ -74,21 +75,73 @@ bool RendererManager::InitializeRaytracing() {
     if (!_raytracingManager->Initialize()) {
         SDL_Log("Raytracing initialization failed, using rasterization only");
         _raytracingManager.reset();
-        _useRaytracing = false;
+        _renderingMode = RenderingMode::RASTERIZATION;
         return false;
     }
-
-    _useRaytracing = true;
     
-    // GPU タイムアウト対策: 解像度を下げる
-    // または、フレームレートを制限する
-    SDL_Log("Raytracing enabled with recursion depth limit");
+    // デフォルトはラスタライズモードのまま
+    // 切り替えはSetRenderingMode()で行う
+    SDL_Log("Raytracing initialized (use SetRenderingMode to enable)");
     
     return true;
 }
 
+void RendererManager::SetRenderingMode(RenderingMode mode) {
+    if (mode == RenderingMode::RAYTRACING && !_raytracingManager) {
+        SDL_Log("Cannot switch to raytracing mode: not initialized");
+        return;
+    }
+    
+    _renderingMode = mode;
+    SDL_Log("Rendering mode switched to: %s", 
+        mode == RenderingMode::RAYTRACING ? "RAYTRACING" : "RASTERIZATION");
+    
+    // モード切り替え時は全モデルを再登録
+    if (mode == RenderingMode::RAYTRACING) {
+        UpdateModelsForRaytracing();
+    }
+}
+
+void RendererManager::RegisterModel(ModelComponent* model) {
+    if (!model) return;
+    
+    auto it = std::find(_registeredModels.begin(), _registeredModels.end(), model);
+    if (it == _registeredModels.end()) {
+        _registeredModels.push_back(model);
+        
+        // レイトレーシングモードの場合は即座に登録
+        if (_renderingMode == RenderingMode::RAYTRACING) {
+            // モデルの更新をトリガー
+            model->OnUpdateWorldTransform();
+        }
+    }
+}
+
+void RendererManager::UnregisterModel(ModelComponent* model) {
+    auto it = std::find(_registeredModels.begin(), _registeredModels.end(), model);
+    if (it != _registeredModels.end()) {
+        _registeredModels.erase(it);
+    }
+}
+
+void RendererManager::UpdateModelsForRaytracing() {
+    if (_renderingMode != RenderingMode::RAYTRACING || !_raytracingManager) {
+        return;
+    }
+    
+    // 全ModelComponentのレイトレーシングメッシュを更新
+    for (auto* model : _registeredModels) {
+        model->OnUpdateWorldTransform();
+    }
+}
+
+void RendererManager::SetWorldMatrix(const Matrix4x4& world) {
+	// 互換性維持用（現在はRootConstantsで直接送るため何もしない）
+	_worldMatrix = world;
+}
+
 void RendererManager::RenderRaytracing() {
-	if (!_useRaytracing || !_raytracingManager) {
+	if (_renderingMode != RenderingMode::RAYTRACING || !_raytracingManager) {
 		return;
 	}
 
@@ -100,60 +153,45 @@ void RendererManager::Update() {
 }
 
 void RendererManager::Render(std::function<void()> renderFunc) {
-    // レイトレーシングレンダリング
-    if (_useRaytracing) {
+    // レイトレーシングモード
+    if (_renderingMode == RenderingMode::RAYTRACING && _raytracingManager) {
         DIRECT3D.BeginRender(nullptr);
         
-        //// 最初のフレームでAcceleration Structureを構築
-        //static bool firstFrame = true;
-        //if (firstFrame) {
-        //    float vertices[] = {
-        //        0.0f,  1.0f, 0.0f,
-        //        1.0f, -1.0f, 0.0f,
-        //       -1.0f, -1.0f, 0.0f
-        //    };
-        //    
-        //    if (_raytracingManager->AddTriangle(vertices, 3)) {
-        //        SDL_Log("Triangle added successfully on first frame");
-        //    } else {
-        //        SDL_Log("Failed to add triangle on first frame");
-        //    }
-        //    firstFrame = false;
-        //}
-        //
+        for (auto* model : _registeredModels) {
+            model->UpdateRaytracingMesh();
+        }
+        
         RenderRaytracing();
         DIRECT3D.EndRender();
         return;
     }
 
-    // 通常のラスタライズレンダリング
+    // ラスタライズモード
     DIRECT3D.BeginRender(_pipelineState);
     DIRECT3D.CommandList().SetGraphicsRootSignature(_rootSignature->Get());
     DESCRIPTORMANAGER.BindDescriptorHeaps();
 
-    _angle += 0.01f;
-    _worldMatrix = XMMatrixRotationY(_angle);
-    _mapPtr->World = _worldMatrix;
-    _mapPtr->View = _viewMatrix;
-    _mapPtr->Proj = _projectionMatrix;
+    CameraComponent* camera = CameraComponent::GetActiveCamera();
+    if (camera) {
+        float aspect = static_cast<float>(DIRECT3D.Width()) / static_cast<float>(DIRECT3D.Height());
+        _viewMatrix = camera->GetViewMatrix();
+        _projectionMatrix = camera->GetProjectionMatrix(aspect);
+    }
 
-    D3D12_GPU_DESCRIPTOR_HANDLE cbvHandle = DESCRIPTORMANAGER.GetGPUHandleAt(_cbvIndex);
-    DIRECT3D.CommandList().SetGraphicsRootDescriptorTable(1, cbvHandle);
+	// ビュー・プロジェクション行列を更新（1回のみ）
+	_mapPtr->View = _viewMatrix;
+	_mapPtr->Proj = _projectionMatrix;
+
+	// シーン定数バインド（b0）
+	D3D12_GPU_DESCRIPTOR_HANDLE cbvHandle = DESCRIPTORMANAGER.GetGPUHandleAt(_cbvIndex);
+	DIRECT3D.CommandList().SetGraphicsRootDescriptorTable(1, cbvHandle);
 
     if (renderFunc) {
-        renderFunc();
+        renderFunc();  // ← ここで各ModelComponent::Render()が呼ばれる
     }
 
     DIRECT3D.EndRender();
 }
-
-//void RendererManager::SetCamera(const Vector3& eyePos, const Vector3& targetPos, const Vector3& upward) {
-//	
-//}
-//
-//void RendererManager::SetProjection(float fov, float aspect, float nearPlane, float farPlane) {
-//	
-//}
 
 bool RendererManager::CreateRenderingResources() {
 
@@ -164,7 +202,7 @@ bool RendererManager::CreateRenderingResources() {
 		return false;
 	}
 
-	_worldMatrix = XMMatrixRotationY(_angle);
+	_worldMatrix = XMMatrixIdentity();
 	Vector3 eye(0,0, -5);
 	Vector3 target(0, 0, 0);
 	Vector3 up(0, 1, 0);
@@ -178,7 +216,6 @@ bool RendererManager::CreateRenderingResources() {
 	_mapPtr = _constantBuffer->GetPtr();
 
 	if (_mapPtr) {
-		_mapPtr->World = _worldMatrix;
 		_mapPtr->View = _viewMatrix;
 		_mapPtr->Proj = _projectionMatrix;
 	}

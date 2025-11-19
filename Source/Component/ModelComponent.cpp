@@ -1,57 +1,73 @@
 #include "Component/ModelComponent.h"
 #include "DirectX/Direct3D.h"
-#include "Resource/AssetManager.h"
-#include "Resource/Model.h"
-#include "Core/GameObject.h"
-#include "Core/Scene.h"
-#include "DirectX/AssimpLoader.h"
 #include "DirectX/VertexBuffer.h"
 #include "DirectX/IndexBuffer.h"
 #include "DirectX/Texture2D.h"
+#include "DirectX/AssimpLoader.h"
+#include "DirectX/DescriptorHeap.h"
+#include "Renderer/RendererManager.h"
+#include "Renderer/RaytracingManager.h"
+#include "Core/GameObject.h"
+#include "Core/Scene.h"
+#include "Core/Game.h"
 #include <filesystem>
 
-std::wstring ReplaceExtension(const std::wstring& origin, const char* ext)
-{
+ModelComponent::ModelComponent(class GameObject& parent, int updateLayer)
+    : Component(parent, updateLayer) {
+    
+    // デフォルトマテリアル設定
+    _material.baseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+    _material.metallic = 0.0f;
+    _material.roughness = 0.5f;
+    _material.reflectance = 0.3f;
+    _material.materialType = 0;
+    _material.uvScale = Vector2(1.0f, 1.0f);
+    
+    // RendererManagerに登録
+    RendererManager& renderer = GAME.GetRendererManager();
+
+    renderer.RegisterModel(this);
+    
+}
+
+ModelComponent::~ModelComponent() {
+    // RendererManagerから登録解除
+    RendererManager& renderer = GAME.GetRendererManager();
+    renderer.UnregisterModel(this);
+    
+    // ラスタライズ用バッファの解放
+    for (auto vb : _vertexBuffers) delete vb;
+    for (auto ib : _indexBuffers) delete ib;
+    for (auto tex : _textures) delete tex;
+    _vertexBuffers.clear();
+    _indexBuffers.clear();
+    _textures.clear();
+    
+    if (_texture) delete _texture;
+}
+
+std::wstring ReplaceExtension(const std::wstring& origin, const char* ext) {
     std::filesystem::path p = origin.c_str();
     return p.replace_extension(ext).c_str();
 }
 
-ModelComponent::ModelComponent(class GameObject& parent, int updateLayer)
-    : Component(parent, updateLayer) {
-
-    ImportSettings importSetting = // ���ꎩ�͎̂���̓ǂݍ��ݐݒ�\����
-    {
-        L"Assets/Model/Alicia/FBX/Alicia_solid_MMD.FBX",
+bool ModelComponent::LoadModel(const std::string& name) {
+    _modelType = ModelType::MESH_FILE;
+    
+    ImportSettings importSetting = {
+        std::wstring(name.begin(), name.end()).c_str(),
         _meshes,
         false,
         true
     };
 
     AssimpLoader loader;
-    if (!loader.Load(importSetting))
-    {
-        return;
+    if (!loader.Load(importSetting)) {
+        SDL_Log("Failed to load model: %s", name.c_str());
+        return false;
     }
 
-    //Vertex vertices[4] = {};
-    //vertices[0].Position = { -1.f,-1.f,0.0f }; vertices[0].UV = { 0.0f,1.0f };
-    //vertices[1].Position = { -1.f, 1.f,0.0f }; vertices[1].UV = { 0.0f,0.0f };
-    //vertices[2].Position = { 1.f,-1.f,0.0f }; vertices[2].UV = { 1.0f,1.0f };
-    //vertices[3].Position = { 1.f, 1.f,0.0f }; vertices[3].UV = { 1.0f,0.0f };
-
-    //unsigned short indices[] = {
-    //    0,1,2,
-    //    2,1,3
-    //};
-
-    //Mesh mesh = {};
-    //mesh.Vertices = std::vector<Vertex>(std::begin(vertices), std::end(vertices));
-    //mesh.Indices = std::vector<unsigned short>(std::begin(indices), std::end(indices));
-    //_meshes.clear();
-    //_meshes.shrink_to_fit();
-    //_meshes.push_back(mesh);
-
-    // �o�b�t�@�쐬�̐���/���s��ǐ�
+    // ラスタライズ用バッファ作成
     bool allBuffersCreated = true;
 
     _vertexBuffers.reserve(_meshes.size());
@@ -67,13 +83,10 @@ ModelComponent::ModelComponent(class GameObject& parent, int updateLayer)
     }
 
     if (!allBuffersCreated) {
-        // �N���[���A�b�v
-        for (auto vb : _vertexBuffers) {
-            delete vb;
-        }
+        for (auto vb : _vertexBuffers) delete vb;
         _vertexBuffers.clear();
         _meshes.clear();
-        return;
+        return false;
     }
 
     _indexBuffers.reserve(_meshes.size());
@@ -88,6 +101,7 @@ ModelComponent::ModelComponent(class GameObject& parent, int updateLayer)
         _indexBuffers.push_back(pIB);
     }
 
+    // テクスチャ読み込み
     _textures.reserve(_meshes.size());
     _textureIndices.reserve(_meshes.size());
 
@@ -98,72 +112,294 @@ ModelComponent::ModelComponent(class GameObject& parent, int updateLayer)
         if (mainTex && mainTex->IsValid()) {
             _textures.push_back(mainTex);
             _textureIndices.push_back(mainTex->GetDescriptorIndex());
-            SDL_Log("Loaded texture for mesh %zu: index %u", i, mainTex->GetDescriptorIndex());
-        }
-        else {
-            // テクスチャが見つからない場合は白テクスチャを使用
+        } else {
             auto whiteTex = Texture2D::GetWhite();
             _textures.push_back(whiteTex);
             _textureIndices.push_back(whiteTex->GetDescriptorIndex());
-            SDL_Log("Using white texture for mesh %zu", i);
         }
     }
 
     if (!allBuffersCreated) {
-        // �N���[���A�b�v
         for (auto vb : _vertexBuffers) delete vb;
         for (auto ib : _indexBuffers) delete ib;
         _vertexBuffers.clear();
         _indexBuffers.clear();
         _meshes.clear();
-        return;
+        return false;
+    }
+
+    _needsRaytracingUpdate = true;
+    return true;
+}
+
+bool ModelComponent::LoadQuad() {
+    _modelType = ModelType::QUAD;
+    
+    // 四角形の頂点データを作成（ローカル座標）
+    Vertex vertices[4] = {};
+    vertices[0].Position = { -0.5f, -0.5f, 0.0f }; vertices[0].UV = { 0.0f, 1.0f };
+    vertices[1].Position = { -0.5f,  0.5f, 0.0f }; vertices[1].UV = { 0.0f, 0.0f };
+    vertices[2].Position = {  0.5f, -0.5f, 0.0f }; vertices[2].UV = { 1.0f, 1.0f };
+    vertices[3].Position = {  0.5f,  0.5f, 0.0f }; vertices[3].UV = { 1.0f, 0.0f };
+    
+    // インデックスデータ
+    unsigned short indices[] = {
+        0, 1, 2,
+        2, 1, 3
+    };
+    
+    _quadVertices = std::vector<Vertex>(std::begin(vertices), std::end(vertices));
+    _quadIndices = std::vector<unsigned short>(std::begin(indices), std::end(indices));
+    
+    // ラスタライズ用バッファ作成
+    auto vb = new VertexBuffer(_quadVertices.data(), _quadVertices.size());
+    if (vb->IsValid()) {
+        _vertexBuffers.push_back(vb);
+    } else {
+        delete vb;
+        return false;
+    }
+    
+    auto ib = new IndexBuffer(_quadIndices.data(), _quadIndices.size());
+    if (ib->IsValid()) {
+        _indexBuffers.push_back(ib);
+    } else {
+        delete ib;
+        return false;
+    }
+    
+    _needsRaytracingUpdate = true;
+    return true;
+}
+
+void ModelComponent::SetTexture(const std::string& filePath) {
+    _texture = Texture2D::Get(filePath);
+    
+    if (_texture && _texture->IsValid()) {
+        SDL_Log("ModelComponent: Texture loaded successfully: %s", filePath.c_str());
+    } else {
+        SDL_Log("ModelComponent: Failed to load texture: %s", filePath.c_str());
     }
 }
 
-ModelComponent::~ModelComponent() {
-
+void ModelComponent::SetMaterial(const PerMeshMaterialData& material) {
+    _material = material;
+    
+    // レイトレーシング側にも反映
+    if (_raytracingMeshId >= 0) {
+        auto& rendererManager = GAME.GetRendererManager();
+        if (rendererManager.GetRaytracingManager()) {
+            PerMeshMaterialData mat = _material;
+            // 自動UV推定は必要に応じて
+            rendererManager.GetRaytracingManager()->SetMeshMaterial(_raytracingMeshId, mat);
+        }
+    }
 }
 
-bool ModelComponent::LoadModel(const std::string& name) {
-	//_model = ASSETS.Models().Get(name);
+void ModelComponent::OnUpdateWorldTransform() {
+    // ワールド変換が変わったらフラグを立てる
+    _needsRaytracingUpdate = true;
+}
 
-	return true;
+void ModelComponent::UpdateRaytracingMesh() {
+    if (!_needsRaytracingUpdate) return;
+    
+    RendererManager& renderer = GAME.GetRendererManager();
+    if (!renderer.GetRaytracingManager()) return;
+    
+    const auto& worldTransform = GetParent().WorldTransform();
+    
+    if (_modelType == ModelType::QUAD) {
+        // Quad用の処理
+        std::vector<Vertex> transformedVertices = _quadVertices;
+        for (auto& vertex : transformedVertices) {
+            Vector3 worldPos = Vector3::Transform(vertex.Position, worldTransform);
+            vertex.Position = worldPos;
+        }
+        
+        if (_raytracingMeshId == -1) {
+            // 新規追加
+            _raytracingMeshId = renderer.GetRaytracingManager()->AddMesh(transformedVertices, _quadIndices);
+            
+            if (_raytracingMeshId >= 0) {
+                // マテリアル設定（自動UV推定込み）
+                PerMeshMaterialData mat = _material;
+                ComputeAutoUV(transformedVertices, mat);
+                
+                // レイトレーシング用テクスチャインデックスを設定
+                if (_texture && _texture->IsValid() && _texture->HasRaytracingIndex()) {
+                    mat.textureIndex = _texture->GetRaytracingIndex();
+                } else {
+                    mat.textureIndex = static_cast<unsigned int>(-1); // 無効な値
+                }
+                
+                renderer.GetRaytracingManager()->SetMeshMaterial(_raytracingMeshId, mat);
+                
+                // メッシュごとのテクスチャ設定
+                if (_texture) {
+                    renderer.GetRaytracingManager()->SetMeshTexture(_raytracingMeshId, _texture);
+                }
+            }
+        } else {
+            // 更新
+            renderer.GetRaytracingManager()->UpdateMesh(_raytracingMeshId, transformedVertices, _quadIndices);
+            
+            // マテリアルとテクスチャも更新
+            PerMeshMaterialData mat = _material;
+            ComputeAutoUV(transformedVertices, mat);
+            
+            if (_texture && _texture->IsValid() && _texture->HasRaytracingIndex()) {
+                mat.textureIndex = _texture->GetRaytracingIndex();
+            } else {
+                mat.textureIndex = static_cast<unsigned int>(-1);
+            }
+            
+            renderer.GetRaytracingManager()->SetMeshMaterial(_raytracingMeshId, mat);
+            
+            if (_texture) {
+                renderer.GetRaytracingManager()->SetMeshTexture(_raytracingMeshId, _texture);
+            }
+        }
+    } else if (_modelType == ModelType::MESH_FILE) {
+        // メッシュファイル用の処理（TODO: 複数メッシュ対応）
+        // 現状は最初のメッシュのみ
+        if (!_meshes.empty()) {
+            std::vector<Vertex> transformedVertices = _meshes[0].Vertices;
+            for (auto& vertex : transformedVertices) {
+                Vector3 worldPos = Vector3::Transform(vertex.Position, worldTransform);
+                vertex.Position = worldPos;
+            }
+            
+            if (_raytracingMeshId == -1) {
+                _raytracingMeshId = renderer.GetRaytracingManager()->AddMesh(
+                    transformedVertices, _meshes[0].Indices);
+                
+                if (_raytracingMeshId >= 0) {
+                    // マテリアル設定
+                    PerMeshMaterialData mat = _material;
+                    if (_texture && _texture->IsValid() && _texture->HasRaytracingIndex()) {
+                        mat.textureIndex = _texture->GetRaytracingIndex();
+                    } else {
+                        mat.textureIndex = static_cast<unsigned int>(-1);
+                    }
+                    
+                    renderer.GetRaytracingManager()->SetMeshMaterial(_raytracingMeshId, mat);
+                    
+                    if (_texture) {
+                        renderer.GetRaytracingManager()->SetMeshTexture(_raytracingMeshId, _texture);
+                    }
+                }
+            } else {
+                renderer.GetRaytracingManager()->UpdateMesh(
+                    _raytracingMeshId, transformedVertices, _meshes[0].Indices);
+                
+                // マテリアルとテクスチャも更新
+                PerMeshMaterialData mat = _material;
+                if (_texture && _texture->IsValid() && _texture->HasRaytracingIndex()) {
+                    mat.textureIndex = _texture->GetRaytracingIndex();
+                } else {
+                    mat.textureIndex = static_cast<unsigned int>(-1);
+                }
+                
+                renderer.GetRaytracingManager()->SetMeshMaterial(_raytracingMeshId, mat);
+                
+                if (_texture) {
+                    renderer.GetRaytracingManager()->SetMeshTexture(_raytracingMeshId, _texture);
+                }
+            }
+        }
+    }
+    
+    _needsRaytracingUpdate = false;
+}
+
+void ModelComponent::ComputeAutoUV(const std::vector<Vertex>& transformedVertices, PerMeshMaterialData& inOutMaterial) {
+    if (transformedVertices.size() < 3) return;
+
+    const Vector3 p0 = transformedVertices[0].Position;
+    const Vector3 p1 = transformedVertices[1].Position;
+    const Vector3 p2 = transformedVertices[2].Position;
+
+    Vector3 edgeU = Vector3(XMVectorSubtract(XMVECTOR(p2), XMVECTOR(p0)));
+    Vector3 edgeVraw = Vector3(XMVectorSubtract(XMVECTOR(p1), XMVECTOR(p0)));
+
+    float w = edgeU.Length();
+    float hraw = edgeVraw.Length();
+    if (w < 1e-6f || hraw < 1e-6f) return;
+
+    Vector3 n = edgeVraw.Cross(edgeU);
+    n.Normalize();
+
+    Vector3 eU = edgeU;
+    eU.Normalize();
+    Vector3 eV = n.Cross(eU);
+    eV.Normalize();
+
+    float h = fabs(edgeVraw.Dot(eV));
+    if (h < 1e-6f) return;
+
+    float uOff = - eU.Dot(p0) / w;
+    float vOff = - eV.Dot(p0) / h;
+
+    inOutMaterial.uvAxis1 = eU;
+    inOutMaterial.uvAxis2 = eV;
+    inOutMaterial.uvRange1 = w;
+    inOutMaterial.uvRange2 = h;
+    inOutMaterial.uvOffset = Vector2(uOff, vOff);
+    if (inOutMaterial.uvScale.x == 0 && inOutMaterial.uvScale.y == 0) {
+        inOutMaterial.uvScale = Vector2(1.0f, 1.0f);
+    }
 }
 
 void ModelComponent::Render() {
     auto& commandList = DIRECT3D.CommandList();
 
-    // 範囲チェックを追加
-    if (_meshes.empty() || _vertexBuffers.empty() || _indexBuffers.empty()) {
-        SDL_Log("Error: No meshes or buffers to render");
+    if (_vertexBuffers.empty() || _indexBuffers.empty()) {
         return;
     }
 
-    // サイズの整合性チェック
-    if (_meshes.size() != _vertexBuffers.size() ||
-        _meshes.size() != _indexBuffers.size() ||
-        _meshes.size() != _textures.size()) {
-        SDL_Log("Error: Mesh count mismatch - meshes: %zu, VB: %zu, IB: %zu, Textures: %zu",
-            _meshes.size(), _vertexBuffers.size(), _indexBuffers.size(), _textures.size());
+    // ワールド行列を設定（b1 RootConstants に送る）
+    const Matrix4x4& worldTransform = GetParent().WorldTransform();
+    // 32bit定数としてセット（行列=16要素）
+    commandList.SetGraphicsRoot32BitConstants(2, 16, &worldTransform, 0);
+
+    // シーン定数（b0のCBV）を毎ドロー前に再バインド（保守的）
+    D3D12_GPU_DESCRIPTOR_HANDLE cbvHandle = DESCRIPTORMANAGER.GetGPUHandleAt(
+        GAME.GetRendererManager().GetConstantBufferIndex()
+    );
+    commandList.SetGraphicsRootDescriptorTable(1, cbvHandle);
+
+    // Quadモードの場合
+    if (_modelType == ModelType::QUAD) {
+        commandList.IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        
+        if (_texture && _texture->IsValid()) {
+            _texture->Bind();
+        } else {
+            auto whiteTex = Texture2D::GetWhite();
+            if (whiteTex) whiteTex->Bind();
+        }
+        
+        _vertexBuffers[0]->Bind();
+        _indexBuffers[0]->Bind();
+        commandList.DrawIndexedInstanced(static_cast<UINT>(_quadIndices.size()), 1, 0, 0, 0);
+        return;
+    }
+
+    // メッシュファイルモード
+    if (_meshes.empty() || _textures.empty()) {
         return;
     }
 
     for (size_t i = 0; i < _meshes.size(); ++i) {
-        // nullチェック
         if (!_vertexBuffers[i] || !_indexBuffers[i] || !_textures[i]) {
-            SDL_Log("Error: Invalid buffer or texture at index %zu", i);
             continue;
         }
 
-        DIRECT3D.CommandList().IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-        // テクスチャをバインド（ルートパラメータ0）
+        commandList.IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         _textures[i]->Bind();
-
-        // 頂点バッファとインデックスバッファをバインド
         _vertexBuffers[i]->Bind();
         _indexBuffers[i]->Bind();
-
         commandList.DrawIndexedInstanced(static_cast<UINT>(_meshes[i].Indices.size()), 1, 0, 0, 0);
     }
 }

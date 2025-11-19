@@ -1,10 +1,17 @@
 #include"TestType.hlsli"
 
+// シーン共通（ビュー・プロジェクション）
 cbuffer SceneConstant : register(b0)
 {
-    matrix world;
     matrix view;
     matrix proj;
+};
+
+// オブジェクト個別（ワールド行列）
+// RootSignature 側で b1 を 32bit ルート定数としてバインドする
+cbuffer ObjectConstant : register(b1)
+{
+    matrix world;
 };
 
 TestType VS(float4 pos : POSITION, float2 uv : TEXCOORD, float4 normal : NORMAL)

@@ -13,12 +13,24 @@ bool RaytracingRootSignature::CreateGlobalRootSignature() {
     CD3DX12_DESCRIPTOR_RANGE srvRange;
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1); // t1 (テクスチャ)
 
-    CD3DX12_ROOT_PARAMETER rootParams[5]; // 4から5に増加
+    CD3DX12_DESCRIPTOR_RANGE meshMaterialRange;
+    meshMaterialRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2); // t2 (メッシュマテリアル)
+    
+    // テクスチャ配列用のディスクリプタレンジ（16個の連続したテクスチャ）
+    CD3DX12_DESCRIPTOR_RANGE textureArrayRange;
+    // t3からt18まで16個のテクスチャ
+    // VOLATILE フラグを削除して、静的なディスクリプタとして扱う
+    textureArrayRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 16, 3, 0, 
+        D3D12_DESCRIPTOR_RANGE_FLAG_NONE); // t3-t18 (16テクスチャ)
+
+    CD3DX12_ROOT_PARAMETER rootParams[7]; // 6から7に増加
     rootParams[0].InitAsDescriptorTable(1, &uavRange);      // UAV (u0) - RenderTarget
     rootParams[1].InitAsShaderResourceView(0);              // SRV (t0) - SceneBVH
     rootParams[2].InitAsDescriptorTable(1, &srvRange);      // SRV (t1) - DiffuseTexture
     rootParams[3].InitAsConstantBufferView(0);              // CBV (b0) - Camera Data
-    rootParams[4].InitAsConstantBufferView(1);              // CBV (b1) - Material Data // 新規追加
+    rootParams[4].InitAsConstantBufferView(1);              // CBV (b1) - Material Data
+    rootParams[5].InitAsDescriptorTable(1, &meshMaterialRange); // SRV (t2) - MeshMaterials
+    rootParams[6].InitAsDescriptorTable(1, &textureArrayRange); // SRV (t3[]) - TextureArray
     
     // スタティックサンプラーを追加
     D3D12_STATIC_SAMPLER_DESC sampler = {};
@@ -68,6 +80,8 @@ bool RaytracingRootSignature::CreateGlobalRootSignature() {
     SDL_Log("  Root Parameter 2: SRV Descriptor Table (t1 - Texture)");
     SDL_Log("  Root Parameter 3: CBV Root Descriptor (b0 - Camera)");
     SDL_Log("  Root Parameter 4: CBV Root Descriptor (b1 - Material)");
+    SDL_Log("  Root Parameter 5: SRV Descriptor Table (t2 - MeshMaterials)");
+    SDL_Log("  Root Parameter 6: SRV Descriptor Table (t3-t18 - 16 Textures)");
     SDL_Log("  Static Sampler 0: s0");
 
     return true;

@@ -7,6 +7,11 @@
 #include <functional>
 #include "Renderer/RaytracingManager.h"
 
+enum class RenderingMode {
+	RASTERIZATION,  // ラスタライズ
+	RAYTRACING      // レイトレーシング
+};
+
 class RendererManager {
 public:
 	RendererManager(class Game& game);
@@ -16,14 +21,30 @@ public:
 	void Update();
 	void Render(std::function<void()> renderFunc);
 
+	// レンダリングモード切り替え
+	void SetRenderingMode(RenderingMode mode);
+	RenderingMode GetRenderingMode() const { return _renderingMode; }
+	bool IsRaytracing() const { return _renderingMode == RenderingMode::RAYTRACING; }
+
 	// レイトレーシング関連
 	bool InitializeRaytracing();
 	void RenderRaytracing();
 	RaytracingManager* GetRaytracingManager() { return _raytracingManager.get(); }
+	
+	// ModelComponent統合レンダリング
+	void RegisterModel(class ModelComponent* model);
+	void UnregisterModel(class ModelComponent* model);
+	void UpdateModelsForRaytracing();
+	
+	// ライト管理
+	void UpdateLights();
+	
+	// ワールド行列設定（ラスタライズ用）
+	void SetWorldMatrix(const Matrix4x4& world);
 
-	// カメラとライティング設定
-	//void SetCamera(const Vector3& eyePos, const Vector3& targetPos, const Vector3& upward);
-	//void SetProjection(float fov, float aspect, float nearPlane, float farPlane);
+	UINT GetConstantBufferIndex() const { return _cbvIndex; }
+
+	// カメラはCameraComponent::GetActiveCamera()から自動取得
 
 private:
 	class Game& _game;
@@ -38,7 +59,10 @@ private:
 
 	// レイトレーシング関連
 	std::unique_ptr<RaytracingManager> _raytracingManager;
-	bool _useRaytracing = false;
+	RenderingMode _renderingMode = RenderingMode::RAYTRACING;
+	
+	// ModelComponent管理
+	std::vector<class ModelComponent*> _registeredModels;
 
 	float _angle;
 	Matrix4x4 _worldMatrix;
@@ -51,4 +75,3 @@ private:
 	bool CreateRootSignature();
 	bool CreatePipelineState();
 };
-

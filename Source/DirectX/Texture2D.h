@@ -14,6 +14,8 @@ public:
     bool IsValid() const { return _isValid; }
     ID3D12Resource* GetTexture() const { return _texture.Get(); }
     UINT GetDescriptorIndex() const { return _svrIndex; }  // インデックス取得用
+    UINT GetRaytracingIndex() const { return _raytracingIndex; }  // レイトレーシング用インデックス
+    bool HasRaytracingIndex() const { return _raytracingIndex != static_cast<UINT>(-1); }
 
 	static Texture2D* Get(const std::wstring& filePath);
 	static Texture2D* Get(const std::string& filePath); 
@@ -28,5 +30,6 @@ private:
 
     bool _isValid;
     UINT _svrIndex;
+    UINT _raytracingIndex = static_cast<UINT>(-1);  // レイトレーシング用の相対インデックス
     ComPtr<ID3D12Resource> _texture;
 };

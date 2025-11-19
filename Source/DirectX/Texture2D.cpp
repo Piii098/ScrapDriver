@@ -1,5 +1,6 @@
 ﻿#include "DirectX/Texture2D.h"
 #include "DirectX/DescriptorHeap.h"
+#include <map>
 
 Texture2D::Texture2D(const std::wstring& filePath)
     : _isValid(false)
@@ -20,6 +21,11 @@ Texture2D::Texture2D(ID3D12Resource* resource)
     if (_texture) {
         _isValid = true;
         _svrIndex = DESCRIPTORMANAGER.ResisterTexture(_texture.Get(), DXGI_FORMAT_R8G8B8A8_UNORM);
+        // レイトレーシング用にも登録
+        _raytracingIndex = DESCRIPTORMANAGER.RegisterRaytracingTexture(_texture.Get(), DXGI_FORMAT_R8G8B8A8_UNORM);
+        if (_raytracingIndex != static_cast<UINT>(-1)) {
+            SDL_Log("White texture registered for raytracing at relative index: %d", _raytracingIndex);
+        }
     }
 }
 
@@ -76,13 +82,19 @@ bool Texture2D::LoadFromFile(const std::wstring& filePath)
 
     // 登録失敗チェックを追加
     if (_svrIndex == static_cast<UINT>(-1)) {
-        SDL_Log("Error: Failed to register texture to descriptor heap");
+        SDL_Log("Failed to register texture");
         return false;
     }
 
     SDL_Log("Texture registered at index: %d", _svrIndex);
+    
+    // レイトレーシング用にも登録（連続配列として）
+    _raytracingIndex = DESCRIPTORMANAGER.RegisterRaytracingTexture(_texture.Get(), metadata.format);
+    if (_raytracingIndex != static_cast<UINT>(-1)) {
+        SDL_Log("Texture also registered for raytracing at relative index: %d", _raytracingIndex);
+    }
 
-    _isValid = true;  // この行を追加
+    _isValid = true;
     return true;
 }
 
@@ -138,13 +150,26 @@ bool Texture2D::CreateTexture(const TexMetadata& metadata, const Image* img) {
 }
 
 Texture2D* Texture2D::Get(const std::wstring& filePath) {
+    // キャッシュチェック
+    static std::map<std::wstring, Texture2D*> textureCache;
+    
+    auto it = textureCache.find(filePath);
+    if (it != textureCache.end()) {
+        SDL_Log("Using cached texture for: %ls (raytracing index: %d)", filePath.c_str(), it->second->GetRaytracingIndex());
+        return it->second;
+    }
+    
     auto tex = new Texture2D(filePath);
     if (!tex->IsValid()) {
         SDL_Log("Failed to load texture: %ls, using white texture", filePath.c_str());
         delete tex;
         return GetWhite();
     }
-    return tex;  // この行を追加
+    
+    // キャッシュに登録
+    textureCache[filePath] = tex;
+    SDL_Log("New texture cached: %ls (raytracing index: %d)", filePath.c_str(), tex->GetRaytracingIndex());
+    return tex;
 }
 
 Texture2D* Texture2D::Get(const std::string& filePath) {

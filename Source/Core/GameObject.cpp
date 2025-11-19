@@ -240,13 +240,8 @@ void GameObject::ComputeWorldTransform() {
 }
 
 void GameObject::LoadProperties(const rapidjson::Value& inObj) {
-	//std::string state;
-	//if (JsonHelper::GetString(inObj, "state", state)) {
-	//}
-	//JsonHelper::GetVector3(inObj, "positioz", _position);
-	//JsonHelper::GetQuaternion(inObj, "rotation", _rotation);
-	//JsonHelper::GetFloat(inObj, "scale", _scale);
-	//ComputeWorldTransform(); // ワールド変換行列を計算
+	// 派生クラスでオーバーライドして独自のプロパティを読み込む
+	// 基底クラスでは何もしない（位置、回転、スケールはLevelLoaderで処理済み）
 }
 
 // ====== ゲッターセッター ===== //

@@ -92,6 +92,38 @@ D3D12_CPU_DESCRIPTOR_HANDLE DescriptorManager::GetCPUHandleAt(UINT index) {
     return handle;
 }
 
+UINT DescriptorManager::RegisterRaytracingTexture(ID3D12Resource* texture, DXGI_FORMAT format) {
+    // レイトレーシング用テクスチャ配列の範囲をチェック
+    if (_raytracingTextureCount >= RAYTRACING_TEXTURE_ARRAY_SIZE) {
+        SDL_Log("Error: Raytracing texture array is full (max: %d)", RAYTRACING_TEXTURE_ARRAY_SIZE);
+        return static_cast<UINT>(-1);
+    }
+    
+    // 連続した領域に配置
+    UINT index = RAYTRACING_TEXTURE_ARRAY_START + _raytracingTextureCount;
+    
+    D3D12_CPU_DESCRIPTOR_HANDLE handle = _heap->GetCPUDescriptorHandleForHeapStart();
+    handle.ptr += _descriptorSize * index;
+    
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = format;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MipLevels = 1;
+    
+    DIRECT3D.Device().CreateShaderResourceView(
+        texture,
+        &srvDesc,
+        handle);
+    
+    UINT relativeIndex = _raytracingTextureCount;
+    _raytracingTextureCount++;
+    
+    SDL_Log("[RT_TEXTURE] Registered at absolute=%d, relative=%d, ptr=%p", 
+        index, relativeIndex, (void*)texture);
+    return relativeIndex;  // 配列内での相対インデックスを返す
+}
+
 void DescriptorManager::BindDescriptorHeaps() {
 	ID3D12DescriptorHeap* heaps[] = { _heap.Get() };
 	DIRECT3D.CommandList().SetDescriptorHeaps(_countof(heaps), heaps);

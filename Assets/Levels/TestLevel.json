@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "globalProperties": {
+    "sceneName": "TestScene",
+    "ambientLight": [0.2, 0.2, 0.2]
+  },
+  "gameObjects": [
+    {
+      "name": "Floor",
+      "position": [0.0, -1.0, 0.0],
+      "rotation": [0.7071068, 0.0, 0.0, 0.7071068],
+      "scale": [100.0, 100.0, 1.0]
+    },
+    {
+      "name": "LeftWall",
+      "position": [-25.0, 30.0, 0.0],
+      "rotation": [0.0, 0.7071068, 0.0, 0.7071068],
+      "scale": [50.0, 50.0, 1.0]
+    },
+    {
+      "name": "RightWall",
+      "position": [25.0, 30.0, 0.0],
+      "rotation": [0.0, -0.7071068, 0.0, 0.7071068],
+      "scale": [50.0, 50.0, 1.0]
+    },
+    {
+      "name": "BackWall",
+      "position": [0.0, 30.0, 25.0],
+      "rotation": [0.7071068, 0.0, 0.0, 0.7071068],
+      "scale": [50.0, 50.0, 1.0]
+    },
+    {
+      "name": "CenterObject1",
+      "position": [-5.0, 3.0, -3.0],
+      "rotation": [0.0, 0.3826834, 0.0, 0.9238795],
+      "scale": [4.0, 4.0, 4.0]
+    },
+    {
+      "name": "CenterObject2",
+      "position": [5.0, 5.0, 2.0],
+      "rotation": [0.0, -0.2588190, 0.0, 0.9659258],
+      "scale": [3.0, 3.0, 3.0]
+    },
+    {
+      "name": "CeilingObject",
+      "position": [0.0, 10.0, 0.0],
+      "rotation": [1.0, 0.0, 0.0, 0.0],
+      "scale": [5.0, 5.0, 5.0]
+    }
+  ]
+}

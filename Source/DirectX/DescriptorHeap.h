@@ -16,6 +16,12 @@ public:
 
     UINT ResisterTexture(ID3D12Resource* texture, DXGI_FORMAT format);
     UINT ResisterConstantBuffer(ID3D12Resource* buffer);
+    
+    // レイトレーシング用テクスチャ配列管理
+    UINT RegisterRaytracingTexture(ID3D12Resource* texture, DXGI_FORMAT format);
+    UINT GetRaytracingTextureArrayBaseIndex() const { return _raytracingTextureBaseIndex; }
+    UINT GetRaytracingTextureCount() const { return _raytracingTextureCount; }
+    
     void BindDescriptorHeaps();
     D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle();
     D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandleAt(UINT index);  // 追加: インデックス指定でハンドル取得
@@ -39,6 +45,13 @@ private:
     UINT _descriptorSize;
     UINT _currentSVRIndex = 0;
     static const UINT MAX_DESCRIPTORS = 1000;
+    
+    // レイトレーシング用テクスチャ配列の領域（連続して配置）
+    // 物理的には100番から開始し、シェーダーではDescriptor Table経由でアクセス
+    static const UINT RAYTRACING_TEXTURE_ARRAY_START = 100;
+    static const UINT RAYTRACING_TEXTURE_ARRAY_SIZE = 16;
+    UINT _raytracingTextureBaseIndex = RAYTRACING_TEXTURE_ARRAY_START;
+    UINT _raytracingTextureCount = 0;
 
 public:
 

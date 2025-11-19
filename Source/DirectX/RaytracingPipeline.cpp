@@ -120,14 +120,14 @@ bool RaytracingPipeline::Initialize(ID3D12RootSignature* globalRootSig, ID3D12Ro
     hitGroupDesc.ClosestHitShaderImport = L"MyClosestHitShader";
 
     D3D12_RAYTRACING_SHADER_CONFIG shaderConfig = {};
-    shaderConfig.MaxPayloadSizeInBytes = 8 * sizeof(float); // float4 color + uint + float3 = 8 floats
+    shaderConfig.MaxPayloadSizeInBytes = 5 * sizeof(float); // float4 color + uint recursionDepth = 5 floats
     shaderConfig.MaxAttributeSizeInBytes = 2 * sizeof(float);
 
     D3D12_RAYTRACING_PIPELINE_CONFIG pipelineConfig = {};
-    pipelineConfig.MaxTraceRecursionDepth = 3; // 反射のため再帰を3回まで許可
+    pipelineConfig.MaxTraceRecursionDepth = 4; // 反射レイトレーシングのための再帰深度（HLSL MAX_RAY_RECURSION_DEPTH=4と一致）
 
     // Subobjectの配列（固定サイズで確保）
-    D3D12_STATE_SUBOBJECT subobjects[6] = {};
+    D3D12_STATE_SUBOBJECT subobjects[5] = {};
     UINT subobjectIndex = 0;
 
     // [0] DXIL Library
@@ -143,25 +143,14 @@ bool RaytracingPipeline::Initialize(ID3D12RootSignature* globalRootSig, ID3D12Ro
     // [2] Shader Config
     subobjects[subobjectIndex].Type = D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_SHADER_CONFIG;
     subobjects[subobjectIndex].pDesc = &shaderConfig;
-    UINT shaderConfigIndex = subobjectIndex++;
-
-    // [3] Shader Config Association
-    const WCHAR* shaderExports[] = { L"MyRaygenShader", L"MyClosestHitShader", L"MyMissShader" };
-    D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION shaderConfigAssociation = {};
-    shaderConfigAssociation.pSubobjectToAssociate = &subobjects[shaderConfigIndex];
-    shaderConfigAssociation.NumExports = 3;
-    shaderConfigAssociation.pExports = shaderExports;
-    
-    subobjects[subobjectIndex].Type = D3D12_STATE_SUBOBJECT_TYPE_SUBOBJECT_TO_EXPORTS_ASSOCIATION;
-    subobjects[subobjectIndex].pDesc = &shaderConfigAssociation;
     subobjectIndex++;
 
-    // [4] Global Root Signature
+    // [3] Global Root Signature
     subobjects[subobjectIndex].Type = D3D12_STATE_SUBOBJECT_TYPE_GLOBAL_ROOT_SIGNATURE;
     subobjects[subobjectIndex].pDesc = &globalRootSig;
     subobjectIndex++;
 
-    // [5] Pipeline Config
+    // [4] Pipeline Config
     subobjects[subobjectIndex].Type = D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_PIPELINE_CONFIG;
     subobjects[subobjectIndex].pDesc = &pipelineConfig;
     subobjectIndex++;
@@ -170,9 +159,8 @@ bool RaytracingPipeline::Initialize(ID3D12RootSignature* globalRootSig, ID3D12Ro
     SDL_Log("  [0] DXIL Library (3 exports)");
     SDL_Log("  [1] Hit Group");
     SDL_Log("  [2] Shader Config");
-    SDL_Log("  [3] Shader Config Association");
-    SDL_Log("  [4] Global Root Signature");
-    SDL_Log("  [5] Pipeline Config");
+    SDL_Log("  [3] Global Root Signature");
+    SDL_Log("  [4] Pipeline Config");
 
     // RTPSO作成
     D3D12_STATE_OBJECT_DESC stateObjectDesc = {};
@@ -197,7 +185,6 @@ bool RaytracingPipeline::Initialize(ID3D12RootSignature* globalRootSig, ID3D12Ro
     SDL_Log("=== Available Shader Exports ===");
     const WCHAR* exportNames[] = {
         L"MyRaygenShader",
-        L"MyClosestHitShader",
         L"MyMissShader",
         L"MyHitGroup"
     };

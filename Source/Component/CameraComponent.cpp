@@ -18,6 +18,14 @@ CameraComponent::~CameraComponent() {
 }
 
 void CameraComponent::Update(float deltaTime) {
+    // デバッグ: Updateが呼ばれていることを確認
+    static int updateLogCounter = 0;
+    if (++updateLogCounter >= 120) {
+        //SDL_Log("CameraComponent::Update called - Mode: %d, DeltaTime: %.4f", 
+        //    static_cast<int>(_controlMode), deltaTime);
+        updateLogCounter = 0;
+    }
+    
     switch (_controlMode) {
         case ControlMode::NONE:
             // カメラ制御なし
@@ -34,8 +42,19 @@ void CameraComponent::Update(float deltaTime) {
 void CameraComponent::UpdateFirstPersonCamera(float deltaTime) {
     Vector3 pos = GetParent().Position();
 
+    // PitchSpeedによる更新（時間ベース）
     _pitch += _pitchSpeed * deltaTime;
+    
+    // Pitchを範囲内にクランプ
+    float oldPitch = _pitch;
     _pitch = Math::Clamp(_pitch, -_maxPitch, _maxPitch);
+    
+    // デバッグ: Pitchの変化をログ出力（60フレームに1回）
+    static int logCounter = 0;
+    if (++logCounter >= 60) {
+        //SDL_Log("CameraComponent - Pitch: %.3f (max: %.3f)", _pitch, _maxPitch);
+        logCounter = 0;
+    }
 
     _pitchSpeed = 0.0f;
 

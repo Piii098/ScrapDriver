@@ -3,6 +3,28 @@ Texture2D<float4> DiffuseTexture : register(t1);
 SamplerState DiffuseSampler : register(s0);
 RWTexture2D<float4> RenderTarget : register(u0);
 
+// メッシュごとのマテリアルデータ配列
+struct PerMeshMaterialData {
+    float4 baseColor;          // 基本色（RGBA）
+    float metallic;            // メタリック（0.0-1.0）
+    float roughness;           // ラフネス（0.0-1.0）
+    float reflectance;         // 反射率（0.0-1.0）
+    uint materialType;         // マテリアルタイプ（0=Diffuse, 1=Metal, 2=Glass）
+    float2 uvScale;            // UVスケール
+    float2 uvOffset;           // UVオフセット
+    float3 uvAxis1;            // UV計算用の軸1
+    float uvRange1;            // 軸1の範囲
+    float3 uvAxis2;            // UV計算用の軸2
+    float uvRange2;            // 軸2の範囲
+    uint textureIndex;         // テクスチャインデックス
+    float3 padding;            // アラインメント用
+};
+
+StructuredBuffer<PerMeshMaterialData> MeshMaterials : register(t2);
+
+// テクスチャ配列（スマートな方法）
+Texture2D<float4> TextureArray[16] : register(t3);
+
 // カメラデータ
 cbuffer CameraData : register(b0)
 {
@@ -24,71 +46,19 @@ cbuffer MaterialData : register(b1)
     float specularCoef;         
     float specularPower;        
     float3 lightPosition;       
-    float padding3;
+    float ambientIntensity;     
     float4 lightColor;          
 }
-
-#define MAX_RAY_RECURSION_DEPTH 5  // 2→3に変更（5以上は推奨しない）
 
 struct RayPayload
 {
     float4 color;
-    uint recursionDepth;
-};
-
-struct ShadowPayload
-{
-    bool hit;
 };
 
 struct VertexAttributes
 {
     float2 uv;
 };
-
-float3 FresnelReflectanceSchlick(float3 incidentDir, float3 normal, float3 f0)
-{
-    float cosTheta = saturate(dot(-incidentDir, normal));
-    return f0 + (1.0 - f0) * pow(1.0 - cosTheta, 5.0);
-}
-
-float4 TraceReflectionRay(float3 origin, float3 direction, uint currentDepth)
-{
-    if(currentDepth >= MAX_RAY_RECURSION_DEPTH)
-    {
-        return float4(0, 0, 0, 1); // 最大深度に達した場合、黒を返す
-    }
-
-    RayDesc reflectionRay;                  // 反射レイの定義
-    reflectionRay.Origin = origin;          // レイの始点
-    reflectionRay.Direction = direction;    // レイの方向
-    reflectionRay.TMin = 0.001f;            // 最小距離    
-    reflectionRay.TMax = 10000.0f;          // 最大距離 
-
-    RayPayload reflectionPayload;           // 反射レイのペイロード
-    reflectionPayload.color = float4(0, 0, 0, 1); // 初期色
-    reflectionPayload.recursionDepth = currentDepth + 1; // 再帰深度を更新
-
-    TraceRay(SceneBVH, RAY_FLAG_NONE, 0xFF, 0, 0, 0, reflectionRay, reflectionPayload);
-
-    return reflectionPayload.color;
-}
-
-bool TraceShadowray(float3 origin, float3 lightDir, float lightDistance)
-{
-    RayDesc shadowRay;                       // シャドウレイの定義
-    shadowRay.Origin = origin;               // レイの始点
-    shadowRay.Direction = lightDir;          // レイの方向
-    shadowRay.TMin = 0.001f;                 // 最小距離
-    shadowRay.TMax = lightDistance - 0.001f; // ライトまでの距離より少し手前まで
-
-    ShadowPayload shadowPayload;             // シャドウペイロード
-    shadowPayload.hit = false;               // 初期状態はヒットしていない
-
-    TraceRay(SceneBVH, RAY_FLAG_NONE, 0xFF, 0, 0, 0, shadowRay, shadowPayload);
-
-    return shadowPayload.hit;
-}
 
 [shader("raygeneration")]
 void MyRaygenShader()
@@ -116,8 +86,7 @@ void MyRaygenShader()
     ray.TMax = 10000.0f;
     
     RayPayload payload;
-    payload.color = float4(1.0f, 0.0f, 1.0f, 1.0f); // マゼンタ（デフォルト色）
-    payload.recursionDepth = 0;
+    payload.color = float4(0.4f, 0.6f, 0.9f, 1.0f); // デフォルトは空の色
     
     TraceRay(SceneBVH, RAY_FLAG_NONE, 0xFF, 0, 0, 0, ray, payload);
     
@@ -127,124 +96,74 @@ void MyRaygenShader()
 [shader("closesthit")]
 void MyClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
+    // ヒット座標
     float3 hitPosition = WorldRayOrigin() + WorldRayDirection() * RayTCurrent();
-    
-    float2 uv;
-    float3 normal;
-    float uvScale = 2.0f;
-    
-    // メッシュの種類を判定
-    if (abs(hitPosition.y + 1.0f) < 1.0f) {
-        // 床
-        uv = float2(
-            (hitPosition.x + 50.0f) / 100.0f * uvScale,
-            (hitPosition.z + 50.0f) / 100.0f * uvScale
-        );
-        normal = float3(0, 1, 0);
+
+    // InstanceIDからマテリアルを取得
+    uint instanceID = InstanceID();
+    PerMeshMaterialData meshMaterial = MeshMaterials[instanceID];
+
+    // 安全対策（ゼロ除算を避ける）
+    float eps = 1e-6f;
+    float r1 = max(meshMaterial.uvRange1, eps);
+    float r2 = max(meshMaterial.uvRange2, eps);
+
+    // データ駆動UV計算
+    float uCoord = dot(hitPosition, meshMaterial.uvAxis1) / r1;
+    float vCoord = dot(hitPosition, meshMaterial.uvAxis2) / r2;
+    float2 uv = float2(uCoord, vCoord) + meshMaterial.uvOffset;
+    uv = frac(uv * max(meshMaterial.uvScale, float2(eps, eps)));
+
+    // テクスチャサンプリング
+    float3 tex = float3(1.0f, 1.0f, 1.0f); // デフォルトは白
+    if (meshMaterial.textureIndex != 0xFFFFFFFF && meshMaterial.textureIndex < 16) 
+    {
+        tex = TextureArray[meshMaterial.textureIndex].SampleLevel(DiffuseSampler, uv, 0).rgb;
     }
-    else if (abs(hitPosition.x + 25.0f) < 1.0f && hitPosition.y > 0.0f) {
-        // X = -25の壁
-        uv = float2(
-            (hitPosition.z + 25.0f) / 50.0f * uvScale,
-            hitPosition.y / 50.0f * uvScale
-        );
-        normal = float3(1, 0, 0);
-    }
-    else if (abs(hitPosition.y - 10.0f) < 1.0f) {
-        // Y = 10の上部メッシュ
-        uv = float2(
-            (hitPosition.x + 0.5f) / 1.0f * uvScale,
-            (hitPosition.z + 4.5f) / 1.0f * uvScale
-        );
-        normal = float3(0, 0, -1);
-    }
-    else {
-        uv = float2(0.5f, 0.5f);
-        normal = float3(0, 1, 0);
-    }
+
+    // 法線の計算（ダミーとして上向き）
+    float3 normal = float3(0, 1, 0);
     
-    uv = frac(uv);
+    float3 edge1 = v1 - v0;
+    float3 edge2 = v2 - v0;
+    normal = normalize(cross(edge1, edge2));
     
-    // 裏面判定を強化
-    float facingRatio = dot(normal, -WorldRayDirection());
-    bool isFrontFace = facingRatio > 0.0f;
-    
-    // 裏面の場合は法線を反転
-    if (!isFrontFace) {
-        normal = -normal;
-        facingRatio = -facingRatio;
-    }
-    
-    // 裏面の場合は早期リターン（オプション：裏面も描画する場合はコメントアウト）
-    if (!isFrontFace) {
-        // 裏面は暗い色で表示
-        payload.color = float4(0.1f, 0.1f, 0.1f, 1.0f);
-        return;
-    }
-    
-    float4 texColor = DiffuseTexture.SampleLevel(DiffuseSampler, uv, 0);
-    
+    // ライティング計算
     float3 lightDir = normalize(lightPosition - hitPosition);
-    float NdotL = max(0.0f, dot(normal, lightDir));
-    
-    float3 diffuse = texColor.rgb * lightColor.rgb * NdotL * diffuseCoef;
-    float3 ambient = texColor.rgb * 0.2f;
-    
     float3 viewDir = normalize(CameraPosition - hitPosition);
-    float3 halfDir = normalize(lightDir + viewDir);
-    float spec = pow(max(dot(normal, halfDir), 0.0f), specularPower);
-    float3 specular = lightColor.rgb * spec * specularCoef;
-    
-    // シャドウレイによる影の計算
-    float shadowFactor = 1.0f;
-    float lightDistance = length(lightPosition - hitPosition);
-    
-    // 光源方向が正しいかチェック
-    if (NdotL > 0.0f) {
-        if (TraceShadowray(hitPosition + normal * 0.01f, lightDir, lightDistance))
-        {
-            shadowFactor = 0.3f;
-        }
-    }
-    else {
-        // 光源が反対側にある場合は完全に影
-        shadowFactor = 0.3f;
-    }
-    
-    diffuse *= shadowFactor;
-    specular *= shadowFactor;
-    
-    float3 localColor = ambient + diffuse + specular;
-    
-    // フレネル効果を適用
-    float3 reflectedColor = float3(0, 0, 0);
-    
-    if (isFrontFace && 
-        payload.recursionDepth < MAX_RAY_RECURSION_DEPTH && 
-        reflectanceCoef > 0.1f)
+    float3 halfVec = normalize(lightDir + viewDir);
+
+    // 拡散反射(Lambert)
+    float diffuse = max(dot(normal, lightDir), 0.0f) * diffuseCoef;
+
+    // 鏡面反射(Blinn-Phong)
+    float specular = pow(max(dot(normal, halfVec), 0.0f), specularPower) * specularCoef;
+
+    // 環境光
+    float3 ambient = tex * ambientIntensity;
+
+    // 反射レイを飛ばす
+    float3 reflectColor = float3(0, 0, 0);
+    if (reflectanceCoef > 0.001f)
     {
         float3 reflectDir = reflect(WorldRayDirection(), normal);
-        
-        if (dot(reflectDir, normal) > 0.0f) {
-            float4 reflectionResult = TraceReflectionRay(
-                hitPosition + normal * 0.01f,
-                reflectDir,
-                payload.recursionDepth
-            );
-            reflectedColor = reflectionResult.rgb;
-        }
+        RayDesc reflectRay;
+        reflectRay.Origin = hitPosition + normal * 0.001f;
+        reflectRay.Direction = reflectDir;
+        reflectRay.TMin = 0.001f;
+        reflectRay.TMax = 10000.0f;
+
+        RayPayload reflectPayload;
+        reflectPayload.color = float4(0, 0, 0, 1);
+        TraceRay(SceneBVH, RAY_FLAG_NONE, 0xFF, 0, 0, 0, reflectRay, reflectPayload);
+        reflectColor = reflectPayload.color.rgb;
     }
-    
-    // フレネル係数を計算
-    float3 f0 = float3(reflectanceCoef, reflectanceCoef, reflectanceCoef);
-    float3 fresnel = FresnelReflectanceSchlick(WorldRayDirection(), normal, f0);
-    
-    // エネルギー保存則を考慮した合成
-    // 反射が増えれば拡散が減る
-    float3 kD = 1.0f - fresnel; // 拡散反射の係数
-    
-    float3 finalColor = kD * localColor + fresnel * reflectedColor;
-    
+
+    // 最終色の合成
+    float3 finalColor = ambient + 
+                        (diffuse * tex + specular) * lightColor.rgb +
+                        reflectColor * reflectanceCoef;
+
     payload.color = float4(finalColor, 1.0f);
 }
 
@@ -253,16 +172,4 @@ void MyMissShader(inout RayPayload payload)
 {
     // 背景色（青空）
     payload.color = float4(0.4f, 0.6f, 0.9f, 1.0f);
-}
-
-[shader("closesthit")]
-void ShadowClosestHitShader(inout ShadowPayload payload, in BuiltInTriangleIntersectionAttributes attr)
-{
-    payload.hit = true;
-}
-
-[shader("miss")]
-void ShadowMissShader(inout ShadowPayload payload)
-{
-    payload.hit = false;
 }

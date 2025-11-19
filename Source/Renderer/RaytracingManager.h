@@ -25,8 +25,17 @@ public:
     // メッシュを更新（既存のメッシュIDを使用）
     bool UpdateMesh(int meshId, const std::vector<Vertex>& vertices, const std::vector<unsigned short>& indices);
     
-    // テクスチャを設定
+    // メッシュのマテリアルを設定
+    void SetMeshMaterial(int meshId, const PerMeshMaterialData& material);
+    
+    // メッシュのテクスチャを設定
+    void SetMeshTexture(int meshId, Texture2D* texture);
+    
+    // テクスチャを設定（旧API、後方互換性のため残す）
     void SetTexture(Texture2D* texture);
+
+    // ライト管理
+    void UpdateLights(const std::vector<class LightComponent*>& lights);
 
     bool IsValid() const { return _isValid; }
 
@@ -43,7 +52,14 @@ private:
     // 追加されたメッシュのデータを保持
     std::vector<std::vector<float>> _meshVertices;
     
-    // テクスチャ
+    // メッシュごとのマテリアルデータ
+    std::vector<PerMeshMaterialData> _meshMaterials;
+    
+    // メッシュごとのテクスチャ
+    std::vector<Texture2D*> _meshTextures;
+    std::vector<UINT> _meshTextureIndices;  // 各メッシュのテクスチャインデックス（相対）
+    
+    // テクスチャ（旧API用、後方互換性）
     Texture2D* _currentTexture = nullptr;
     
     // カメラ用Constant Buffer
@@ -54,12 +70,18 @@ private:
     ComPtr<ID3D12Resource> _materialBuffer;
     void* _materialBufferMapped = nullptr;
     
+    // メッシュマテリアル用Structured Buffer
+    ComPtr<ID3D12Resource> _meshMaterialBuffer;
+    UINT _meshMaterialSRVIndex = static_cast<UINT>(-1);
+    
     bool CreateRootSignatures();
     bool CreatePipeline();
     bool CreateShaderTable();
     bool CreateOutput();
     bool CreateCameraBuffer();
-    bool CreateMaterialBuffer();  // 新規追加
+    bool CreateMaterialBuffer();
+    bool CreateMeshMaterialBuffer();  // 新規追加
     void UpdateCameraBuffer();
-    void UpdateMaterialBuffer(); // 新規追加
+    void UpdateMaterialBuffer();
+    void UpdateMeshMaterialBuffer();  // 新規追加
 };

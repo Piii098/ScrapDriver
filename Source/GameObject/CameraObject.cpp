@@ -35,28 +35,28 @@ void CameraObject::InputObject(InputAction& input) {
 	input.SetRelativeMouseMode(true);
 	Vector2 mouse = input.GetMousePosition();
 
-	const float mouseSensitivity = 0.007f; // ここで感度を調整（0.05〜0.2ぐらいで好みに合わせて）
+	const float mouseSensitivity = 0.003f; // マウス感度（0.001〜0.01ぐらいで調整）
 
-	// yaw 左右回転 
-	// pitch 上下回転
-
-	const float maxYawSpeed = Math::Pi * 3.f;
-	float yawSpeed = 0.0f;
+	// Yaw（左右回転）- Y軸回転をGameObjectのRotationに適用
 	if (mouse.x != 0) {
-		yawSpeed = mouse.x * maxYawSpeed * mouseSensitivity * 0.01f;
+		float yawDelta = mouse.x * mouseSensitivity;
+		Quaternion yawRotation = Quaternion(Vector3::UnitY, yawDelta);
+		Rotation(Quaternion::Concatenate(Rotation(), yawRotation));
 	}
 
-	Quaternion q(Quaternion::Concatenate(Rotation(), Quaternion(Vector3::UnitY, yawSpeed)));
-
-	Rotation(q);
-
-	const float maxPitchSpeed = Math::Pi * 3.f;
-	float pitchSpeed = 0.0f;
+	// Pitch（上下回転）- マウスの相対移動をpitchに加算
 	if (mouse.y != 0) {
-		pitchSpeed = mouse.y * maxPitchSpeed * mouseSensitivity * 0.3f;
+		float pitchDelta = mouse.y * mouseSensitivity;
+		_cameraComp->AddPitch(pitchDelta);
+		
+		// // デバッグ: マウス入力をログ出力
+		// static int logCounter = 0;
+		// if (++logCounter >= 30) {
+		// 	SDL_Log("Mouse Y: %.2f, PitchDelta: %.4f, Current Pitch: %.3f", 
+		// 		mouse.y, pitchDelta, _cameraComp->GetPitch());
+		// 	logCounter = 0;
+		// }
 	}
-
-	_cameraComp->SetPitchSpeed(pitchSpeed);
 
 	//if (input.IsKey(SDL_SCANCODE_LEFT) || input.IsKey(SDL_SCANCODE_A)) {
 	//	// 左移動（カメラの左方向）
@@ -67,6 +67,13 @@ void CameraObject::InputObject(InputAction& input) {
 	//	// 右移動（カメラの右方向）
 	//	_position += right * moveSpeed;
 	//}
+
+	if (input.IsKey(SDL_SCANCODE_R)) {
+		_position += Vector3(0.0f, moveSpeed, 0.0f);
+	}
+	if (input.IsKey(SDL_SCANCODE_F)) {
+		_position -= Vector3(0.0f, moveSpeed, 0.0f);
+	}
 }
 
 void CameraObject::UpdateObject(const float deltaTime) {
