@@ -123,11 +123,7 @@ void MyClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersection
 
     // 法線の計算（ダミーとして上向き）
     float3 normal = float3(0, 1, 0);
-    
-    float3 edge1 = v1 - v0;
-    float3 edge2 = v2 - v0;
-    normal = normalize(cross(edge1, edge2));
-    
+
     // ライティング計算
     float3 lightDir = normalize(lightPosition - hitPosition);
     float3 viewDir = normalize(CameraPosition - hitPosition);
