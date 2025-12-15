@@ -5,6 +5,7 @@
 
 enum class ModelType {
 	QUAD,        // 四角形プリミティブ
+	SPHERE,      // 球プリミティブ
 	MESH_FILE    // メッシュファイル（FBX等）
 };
 
@@ -16,6 +17,7 @@ public:
 	// モデル読み込み
 	bool LoadModel(const std::string& name);
 	bool LoadQuad(); // 四角形メッシュを作成
+	bool LoadSphere(float radius = 0.5f, int slices = 16, int stacks = 16); // 球メッシュを作成
 	
 	// レンダリング（ラスタライズ用）
 	void Render() override;

@@ -110,56 +110,22 @@ void TestScene::LoadObjects()
 	material.uvScale = Vector2(1.0f, 1.0f);
 	modelComp->SetMaterial(material);
 
-	//// 反射テスト用の高メタリック球体
-	//GameObject* reflectiveSphere = CreateGameObject<GameObject>();
-	//reflectiveSphere->Name("ReflectiveSphere");
-	//reflectiveSphere->Position(2.0f, 1.0f, 2.0f);
-	//reflectiveSphere->Scale(1.0f, 1.0f, 1.0f);
-	//auto* sphereModel = reflectiveSphere->CreateComponent<ModelComponent>();
-	//sphereModel->LoadQuad(); // 球体メッシュがない場合はQuadで代用
-	//sphereModel->SetTexture("Assets/texture.jpg");
-	//PerMeshMaterialData sphereMaterial = {};
-	//sphereMaterial.baseColor = Vector4(0.9f, 0.9f, 1.0f, 1.0f); // 薄い青
-	//sphereMaterial.metallic = 0.95f;  // 高メタリック
-	//sphereMaterial.roughness = 0.05f; // 低ラフネス（鏡面）
-	//sphereMaterial.reflectance = 1.0f;
-	//sphereMaterial.materialType = 1; // Metal
-	//sphereMaterial.uvScale = Vector2(1.0f, 1.0f);
-	//sphereModel->SetMaterial(sphereMaterial);
+	// 球オブジェクト（ラスタライズ動作確認用）
+	object = CreateGameObject<GameObject>();
+	object->Name("Sphere");
+	object->Position(0.0f, 0.0f, 0.0f); // 半径1で床(y=-1)に接地
+	object->Scale(1.0f, 1.0f, 1.0f);
+	modelComp = object->CreateComponent<ModelComponent>();
+	modelComp->LoadSphere(1.0f, 24, 16);
+	modelComp->SetTexture("Assets/texture.jpg");
 
-	//// 反射確認用の追加オブジェクト
-	//GameObject* coloredCube = CreateGameObject<GameObject>();
-	//coloredCube->Name("ColoredCube");
-	//coloredCube->Position(-2.0f, 1.0f, 3.0f);
-	//coloredCube->Scale(1.5f, 1.5f, 1.5f);
-	//auto* cubeModel = coloredCube->CreateComponent<ModelComponent>();
-	//cubeModel->LoadQuad();
-	//cubeModel->SetTexture("Assets/texture.jpg");
-	//PerMeshMaterialData cubeMaterial = {};
-	//cubeMaterial.baseColor = Vector4(1.0f, 0.2f, 0.2f, 1.0f); // 赤色
-	//cubeMaterial.metallic = 0.1f;
-	//cubeMaterial.roughness = 0.7f;
-	//cubeMaterial.reflectance = 0.3f;
-	//cubeMaterial.materialType = 0;
-	//cubeMaterial.uvScale = Vector2(1.0f, 1.0f);
-	//cubeModel->SetMaterial(cubeMaterial);
-
-	//// ガラス材質テスト用オブジェクト
-	//GameObject* glassObject = CreateGameObject<GameObject>();
-	//glassObject->Name("GlassObject");
-	//glassObject->Position(0.0f, 1.5f, 1.0f);
-	//glassObject->Scale(1.0f, 2.0f, 1.0f);
-	//auto* glassModel = glassObject->CreateComponent<ModelComponent>();
-	//glassModel->LoadQuad();
-	//glassModel->SetTexture("Assets/texture.jpg");
-	//PerMeshMaterialData glassMaterial = {};
-	//glassMaterial.baseColor = Vector4(0.9f, 1.0f, 0.9f, 0.8f); // 半透明の緑
-	//glassMaterial.metallic = 0.0f;
-	//glassMaterial.roughness = 0.0f; // 完全に滑らか
-	//glassMaterial.reflectance = 0.9f;
-	//glassMaterial.materialType = 2; // Glass
-	//glassMaterial.uvScale = Vector2(1.0f, 1.0f);
-	//glassModel->SetMaterial(glassMaterial);
+	material.baseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+	material.metallic = 0.1f;
+	material.roughness = 0.4f;
+	material.reflectance = 0.5f;
+	material.materialType = 0;
+	material.uvScale = Vector2(1.0f, 1.0f);
+	modelComp->SetMaterial(material);
 
 }
 

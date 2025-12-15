@@ -11,6 +11,90 @@
 #include "Core/Scene.h"
 #include "Core/Game.h"
 #include <filesystem>
+#include <algorithm>
+#include <cmath>
+#include <limits>
+
+namespace {
+
+// 球メッシュをスライス×スタック分割で生成する
+void GenerateSphereMesh(float radius, int slices, int stacks, std::vector<Vertex>& outVertices, std::vector<unsigned short>& outIndices) {
+    slices = Math::Max(3, slices);
+    stacks = Math::Max(2, stacks);
+
+    const int vertCols = slices + 1;
+    const int vertRows = stacks + 1;
+
+    outVertices.clear();
+    outIndices.clear();
+    outVertices.reserve(static_cast<size_t>(vertCols) * vertRows);
+    outIndices.reserve(static_cast<size_t>(slices) * stacks * 6);
+
+    for (int stack = 0; stack <= stacks; ++stack) {
+        float v = static_cast<float>(stack) / static_cast<float>(stacks);
+        float phi = XM_PI * v;
+        float sinPhi = sinf(phi);
+        float cosPhi = cosf(phi);
+
+        for (int slice = 0; slice <= slices; ++slice) {
+            float u = static_cast<float>(slice) / static_cast<float>(slices);
+            float theta = XM_2PI * u;
+            float sinTheta = sinf(theta);
+            float cosTheta = cosf(theta);
+
+            Vector3 pos(radius * sinPhi * cosTheta,
+                        radius * cosPhi,
+                        radius * sinPhi * sinTheta);
+
+            Vector3 normal = pos;
+            normal.Normalize();
+
+            Vector3 tangent(-sinTheta, 0.0f, cosTheta);
+            float tangentLenSq = tangent.Dot(tangent);
+            if (tangentLenSq < 1e-6f) {
+                tangent = Vector3(1.0f, 0.0f, 0.0f);
+            }
+            tangent.Normalize();
+
+            Vertex vtx = {};
+            vtx.Position = pos;
+            vtx.Normal = normal;
+            vtx.Tangent = tangent;
+            vtx.UV = Vector2(u, 1.0f - v);
+            vtx.Color = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+
+            outVertices.push_back(vtx);
+        }
+    }
+
+    // インデックス生成
+    const size_t maxIndexValue = (std::numeric_limits<unsigned short>::max)();
+    if (outVertices.size() > maxIndexValue) {
+        SDL_Log("GenerateSphereMesh: vertex count exceeds 16-bit index limit");
+        outVertices.clear();
+        outIndices.clear();
+        return;
+    }
+
+    for (int stack = 0; stack < stacks; ++stack) {
+        for (int slice = 0; slice < slices; ++slice) {
+            unsigned short i0 = static_cast<unsigned short>(stack * vertCols + slice);
+            unsigned short i1 = static_cast<unsigned short>(i0 + 1);
+            unsigned short i2 = static_cast<unsigned short>(i0 + vertCols);
+            unsigned short i3 = static_cast<unsigned short>(i2 + 1);
+
+            outIndices.push_back(i0);
+            outIndices.push_back(i2);
+            outIndices.push_back(i1);
+
+            outIndices.push_back(i1);
+            outIndices.push_back(i2);
+            outIndices.push_back(i3);
+        }
+    }
+}
+
+} // namespace
 
 ModelComponent::ModelComponent(class GameObject& parent, int updateLayer)
     : Component(parent, updateLayer) {
@@ -172,13 +256,91 @@ bool ModelComponent::LoadQuad() {
     return true;
 }
 
-void ModelComponent::SetTexture(const std::string& filePath) {
-    _texture = Texture2D::Get(filePath);
-    
+bool ModelComponent::LoadSphere(float radius, int slices, int stacks) {
+    _modelType = ModelType::SPHERE;
+
+    for (auto vb : _vertexBuffers) delete vb;
+    for (auto ib : _indexBuffers) delete ib;
+    for (auto tex : _textures) delete tex;
+    _vertexBuffers.clear();
+    _indexBuffers.clear();
+    _textures.clear();
+    _textureIndices.clear();
+    _meshes.clear();
+    _quadVertices.clear();
+    _quadIndices.clear();
+
+    std::vector<Vertex> vertices;
+    std::vector<unsigned short> indices;
+    GenerateSphereMesh(radius, slices, stacks, vertices, indices);
+
+    if (vertices.empty() || indices.empty()) {
+        SDL_Log("ModelComponent: Failed to generate sphere mesh");
+        return false;
+    }
+
+    Mesh sphereMesh = {};
+    sphereMesh.Vertices = std::move(vertices);
+    sphereMesh.Indices = std::move(indices);
+    _meshes.push_back(std::move(sphereMesh));
+
+    auto vb = new VertexBuffer(_meshes[0].Vertices.data(), _meshes[0].Vertices.size());
+    if (!vb->IsValid()) {
+        delete vb;
+        _meshes.clear();
+        return false;
+    }
+    _vertexBuffers.push_back(vb);
+
+    auto ib = new IndexBuffer(_meshes[0].Indices.data(), _meshes[0].Indices.size());
+    if (!ib->IsValid()) {
+        delete ib;
+        delete _vertexBuffers.back();
+        _vertexBuffers.clear();
+        _meshes.clear();
+        return false;
+    }
+    _indexBuffers.push_back(ib);
+
+    Texture2D* mainTex = nullptr;
     if (_texture && _texture->IsValid()) {
+        mainTex = _texture;
+    } else {
+        mainTex = Texture2D::GetWhite();
+    }
+
+    if (mainTex) {
+        _textures.push_back(mainTex);
+        _textureIndices.push_back(mainTex->GetDescriptorIndex());
+    }
+
+    _needsRaytracingUpdate = true;
+    return true;
+}
+
+void ModelComponent::SetTexture(const std::string& filePath) {
+    Texture2D* loaded = Texture2D::Get(filePath);
+    if (loaded && loaded->IsValid()) {
         SDL_Log("ModelComponent: Texture loaded successfully: %s", filePath.c_str());
+        _texture = loaded;
     } else {
         SDL_Log("ModelComponent: Failed to load texture: %s", filePath.c_str());
+        _texture = Texture2D::GetWhite();
+    }
+
+    Texture2D* effectiveTex = _texture;
+    if (effectiveTex && effectiveTex->IsValid()) {
+        if (_textures.empty()) {
+            _textures.push_back(effectiveTex);
+            _textureIndices.push_back(effectiveTex->GetDescriptorIndex());
+        } else {
+            _textures[0] = effectiveTex;
+            if (_textureIndices.empty()) {
+                _textureIndices.push_back(effectiveTex->GetDescriptorIndex());
+            } else {
+                _textureIndices[0] = effectiveTex->GetDescriptorIndex();
+            }
+        }
     }
 }
 
@@ -260,8 +422,8 @@ void ModelComponent::UpdateRaytracingMesh() {
                 renderer.GetRaytracingManager()->SetMeshTexture(_raytracingMeshId, _texture);
             }
         }
-    } else if (_modelType == ModelType::MESH_FILE) {
-        // メッシュファイル用の処理（TODO: 複数メッシュ対応）
+    } else if (_modelType == ModelType::MESH_FILE || _modelType == ModelType::SPHERE) {
+        // メッシュファイル/生成メッシュ用の処理（TODO: 複数メッシュ対応）
         // 現状は最初のメッシュのみ
         if (!_meshes.empty()) {
             std::vector<Vertex> transformedVertices = _meshes[0].Vertices;
