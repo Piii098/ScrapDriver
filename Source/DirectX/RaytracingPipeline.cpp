@@ -124,7 +124,7 @@ bool RaytracingPipeline::Initialize(ID3D12RootSignature* globalRootSig, ID3D12Ro
     shaderConfig.MaxAttributeSizeInBytes = 2 * sizeof(float);
 
     D3D12_RAYTRACING_PIPELINE_CONFIG pipelineConfig = {};
-    pipelineConfig.MaxTraceRecursionDepth = 4; // 反射レイトレーシングのための再帰深度（HLSL MAX_RAY_RECURSION_DEPTH=4と一致）
+    pipelineConfig.MaxTraceRecursionDepth = 3; // 反射レイトレーシングのための再帰深度（HLSL MAX_RAY_RECURSION_DEPTH=4と一致）
 
     // Subobjectの配列（固定サイズで確保）
     D3D12_STATE_SUBOBJECT subobjects[5] = {};

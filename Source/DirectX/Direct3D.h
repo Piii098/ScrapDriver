@@ -17,7 +17,7 @@
 #include <dxgi.h>
 
 #include <DirectXTex.h>
-#include "ShaderStruct.h"
+#include "DirectX/ShaderStruct.h"
 
 #include <wrl/client.h>
 using Microsoft::WRL::ComPtr;

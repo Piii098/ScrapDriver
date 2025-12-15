@@ -113,8 +113,8 @@ void TestScene::LoadObjects()
 	// 球オブジェクト（ラスタライズ動作確認用）
 	object = CreateGameObject<GameObject>();
 	object->Name("Sphere");
-	object->Position(0.0f, 0.0f, 0.0f); // 半径1で床(y=-1)に接地
-	object->Scale(1.0f, 1.0f, 1.0f);
+	object->Position(0.0f, 20.0f, 0.0f); // 半径1で床(y=-1)に接地
+	object->Scale(10.0f, 10.0f, 10.0f);
 	modelComp = object->CreateComponent<ModelComponent>();
 	modelComp->LoadSphere(1.0f, 24, 16);
 	modelComp->SetTexture("Assets/texture.jpg");

@@ -403,13 +403,13 @@ void RaytracingManager::Render() {
     Texture2D* diffuseTexture = nullptr;
     if (!_meshTextures.empty() && _meshTextures[0] != nullptr) {
         diffuseTexture = _meshTextures[0];
-        SDL_Log("Binding DiffuseTexture from mesh 0");
+        //SDL_Log("Binding DiffuseTexture from mesh 0");
     } else if (_currentTexture && _currentTexture->IsValid()) {
         diffuseTexture = _currentTexture;
-        SDL_Log("Binding DiffuseTexture from _currentTexture");
+        //SDL_Log("Binding DiffuseTexture from _currentTexture");
     } else {
         diffuseTexture = Texture2D::GetWhite();
-        SDL_Log("Binding DiffuseTexture as white (fallback)");
+        //SDL_Log("Binding DiffuseTexture as white (fallback)");
     }
     
     if (diffuseTexture && diffuseTexture->IsValid()) {
@@ -434,6 +434,12 @@ void RaytracingManager::Render() {
     UINT raytracingTextureCount = DESCRIPTORMANAGER.GetRaytracingTextureCount();
     D3D12_GPU_DESCRIPTOR_HANDLE textureArrayHandle = DESCRIPTORMANAGER.GetGPUHandleAt(raytracingTextureBase);
     commandList.SetComputeRootDescriptorTable(6, textureArrayHandle);
+
+    // レイトレーシング用 頂点位置バッファ配列をバインド（連続した領域から）
+    // HLSL側では InstanceID() を配列インデックスとして使用
+    UINT raytracingVertexBase = DESCRIPTORMANAGER.GetRaytracingVertexPositionArrayBaseIndex();
+    D3D12_GPU_DESCRIPTOR_HANDLE vertexArrayHandle = DESCRIPTORMANAGER.GetGPUHandleAt(raytracingVertexBase);
+    commandList.SetComputeRootDescriptorTable(7, vertexArrayHandle);
     
     // デバッグ用（初回のみログ出力）
     static bool logged = false;
@@ -443,6 +449,12 @@ void RaytracingManager::Render() {
         SDL_Log("  Texture Count: %d", raytracingTextureCount);
         SDL_Log("  GPU Handle: %llu", textureArrayHandle.ptr);
         SDL_Log("  Root Parameter: 6 (Descriptor Table)");
+
+        SDL_Log("=== RAYTRACING VERTEX POSITION ARRAY BIND ===");
+        SDL_Log("  Base Index: %d", raytracingVertexBase);
+        SDL_Log("  Buffer Count: %d", DESCRIPTORMANAGER.GetRaytracingVertexPositionCount());
+        SDL_Log("  GPU Handle: %llu", vertexArrayHandle.ptr);
+        SDL_Log("  Root Parameter: 7 (Descriptor Table)");
         logged = true;
     }
 

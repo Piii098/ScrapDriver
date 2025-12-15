@@ -1,4 +1,5 @@
 #include "DirectX/AccelerationStructure.h"
+#include "DirectX/DescriptorHeap.h"
 
 AccelerationStructure::AccelerationStructure() : _isValid(false) {
 }
@@ -6,6 +7,9 @@ AccelerationStructure::AccelerationStructure() : _isValid(false) {
 bool AccelerationStructure::BuildSimple(float* vertices, int vertexCount) {
     auto& device = DIRECT3D.DXRDevice();
     auto& commandList = DIRECT3D.CommandList();
+
+    // レイトレ用頂点位置SRV配列をリビルド
+    DESCRIPTORMANAGER.ResetRaytracingVertexPositionArray();
 
     // 頂点バッファ作成（アップロードヒープ）
     UINT64 vertexBufferSize = sizeof(float) * 3 * vertexCount;
@@ -32,6 +36,12 @@ bool AccelerationStructure::BuildSimple(float* vertices, int vertexCount) {
     _vertexBuffer->Map(0, nullptr, &mapped);
     memcpy(mapped, vertices, vertexBufferSize);
     _vertexBuffer->Unmap(0, nullptr);
+
+    // StructuredBuffer<float3> として参照するためのSRVを作成（instanceID=0用）
+    {
+        UINT count = static_cast<UINT>(vertexCount);
+        DESCRIPTORMANAGER.RegisterRaytracingVertexPositionBuffer(_vertexBuffer.Get(), count);
+    }
 
     // デバッグ: 頂点データを出力
     SDL_Log("Triangle vertices:");
@@ -152,6 +162,9 @@ bool AccelerationStructure::BuildMultipleMeshes(const std::vector<std::vector<fl
     }
     
     SDL_Log("Building acceleration structure with %zu meshes", meshVertices.size());
+
+    // レイトレ用頂点位置SRV配列をリビルド
+    DESCRIPTORMANAGER.ResetRaytracingVertexPositionArray();
     
     // クリア
     _vertexBuffers.clear();
@@ -186,6 +199,12 @@ bool AccelerationStructure::BuildMultipleMeshes(const std::vector<std::vector<fl
         vertexBuffer->Map(0, nullptr, &mapped);
         memcpy(mapped, vertices.data(), vertexBufferSize);
         vertexBuffer->Unmap(0, nullptr);
+
+        // StructuredBuffer<float3> として参照するためのSRVを作成（InstanceID==meshIdx）
+        {
+            UINT count = static_cast<UINT>(vertices.size() / 3);
+            DESCRIPTORMANAGER.RegisterRaytracingVertexPositionBuffer(vertexBuffer.Get(), count);
+        }
         
         _vertexBuffers.push_back(vertexBuffer);
         

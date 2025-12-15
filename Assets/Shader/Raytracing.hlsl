@@ -3,6 +3,9 @@ Texture2D<float4> DiffuseTexture : register(t1);
 SamplerState DiffuseSampler : register(s0);
 RWTexture2D<float4> RenderTarget : register(u0);
 
+#define MAX_VERTEX_BUFFERS 256 // Must match kMaxRaytracingVertexBuffers in C++
+StructuredBuffer<float3> VertexBuffers[MAX_VERTEX_BUFFERS] : register(t19);
+
 // メッシュごとのマテリアルデータ配列
 struct PerMeshMaterialData {
     float4 baseColor;          // 基本色（RGBA）
@@ -19,6 +22,8 @@ struct PerMeshMaterialData {
     uint textureIndex;         // テクスチャインデックス
     float3 padding;            // アラインメント用
 };
+
+#define MAX_BOUNCES 2 // 反射回数（0=反射なし, 1=1回反射...）
 
 StructuredBuffer<PerMeshMaterialData> MeshMaterials : register(t2);
 
@@ -53,6 +58,7 @@ cbuffer MaterialData : register(b1)
 struct RayPayload
 {
     float4 color;
+    uint depth;
 };
 
 struct VertexAttributes
@@ -86,10 +92,10 @@ void MyRaygenShader()
     ray.TMax = 10000.0f;
     
     RayPayload payload;
-    payload.color = float4(0.4f, 0.6f, 0.9f, 1.0f); // デフォルトは空の色
-    
+    payload.color = float4(0.4f, 0.6f, 0.9f, 1.0f);
+    payload.depth = 0;
+
     TraceRay(SceneBVH, RAY_FLAG_NONE, 0xFF, 0, 0, 0, ray, payload);
-    
     RenderTarget[launchIndex] = payload.color;
 }
 
@@ -102,6 +108,25 @@ void MyClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersection
     // InstanceIDからマテリアルを取得
     uint instanceID = InstanceID();
     PerMeshMaterialData meshMaterial = MeshMaterials[instanceID];
+
+    // 頂点データ取得（非インデックス三角形想定）
+    if (instanceID >= MAX_VERTEX_BUFFERS)
+    {
+        payload.color = float4(1, 0, 1, 1); // 安全対策（想定外のID）
+        return;
+    }
+
+    uint primitiveIndex = PrimitiveIndex();
+    uint baseVertex = primitiveIndex * 3;
+
+    float3x4 objectToWorld = ObjectToWorld3x4();
+    float3 p0 = mul(objectToWorld, float4(VertexBuffers[instanceID][baseVertex + 0], 1.0f));
+    float3 p1 = mul(objectToWorld, float4(VertexBuffers[instanceID][baseVertex + 1], 1.0f));
+    float3 p2 = mul(objectToWorld, float4(VertexBuffers[instanceID][baseVertex + 2], 1.0f));
+
+    float3 normal = cross(p1 - p0, p2 - p0);
+    float normalLenSq = dot(normal, normal);
+    normal = (normalLenSq > 1e-8f) ? normalize(normal) : float3(0, 1, 0);
 
     // 安全対策（ゼロ除算を避ける）
     float eps = 1e-6f;
@@ -121,9 +146,6 @@ void MyClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersection
         tex = TextureArray[meshMaterial.textureIndex].SampleLevel(DiffuseSampler, uv, 0).rgb;
     }
 
-    // 法線の計算（ダミーとして上向き）
-    float3 normal = float3(0, 1, 0);
-
     // ライティング計算
     float3 lightDir = normalize(lightPosition - hitPosition);
     float3 viewDir = normalize(CameraPosition - hitPosition);
@@ -140,9 +162,10 @@ void MyClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersection
 
     // 反射レイを飛ばす
     float3 reflectColor = float3(0, 0, 0);
-    if (reflectanceCoef > 0.001f)
+    if (reflectanceCoef > 0.001f && payload.depth < MAX_BOUNCES)
     {
         float3 reflectDir = reflect(WorldRayDirection(), normal);
+
         RayDesc reflectRay;
         reflectRay.Origin = hitPosition + normal * 0.001f;
         reflectRay.Direction = reflectDir;
@@ -151,6 +174,8 @@ void MyClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersection
 
         RayPayload reflectPayload;
         reflectPayload.color = float4(0, 0, 0, 1);
+        reflectPayload.depth = payload.depth + 1;
+
         TraceRay(SceneBVH, RAY_FLAG_NONE, 0xFF, 0, 0, 0, reflectRay, reflectPayload);
         reflectColor = reflectPayload.color.rgb;
     }

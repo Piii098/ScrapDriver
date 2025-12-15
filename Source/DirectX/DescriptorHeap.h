@@ -21,6 +21,12 @@ public:
     UINT RegisterRaytracingTexture(ID3D12Resource* texture, DXGI_FORMAT format);
     UINT GetRaytracingTextureArrayBaseIndex() const { return _raytracingTextureBaseIndex; }
     UINT GetRaytracingTextureCount() const { return _raytracingTextureCount; }
+
+    // レイトレーシング用 頂点位置バッファ配列（StructuredBuffer<float3>）管理
+    void ResetRaytracingVertexPositionArray() { _raytracingVertexPositionCount = 0; }
+    UINT RegisterRaytracingVertexPositionBuffer(ID3D12Resource* vertexPositionBuffer, UINT vertexCount);
+    UINT GetRaytracingVertexPositionArrayBaseIndex() const { return _raytracingVertexPositionBaseIndex; }
+    UINT GetRaytracingVertexPositionCount() const { return _raytracingVertexPositionCount; }
     
     void BindDescriptorHeaps();
     D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle();
@@ -52,6 +58,13 @@ private:
     static const UINT RAYTRACING_TEXTURE_ARRAY_SIZE = 16;
     UINT _raytracingTextureBaseIndex = RAYTRACING_TEXTURE_ARRAY_START;
     UINT _raytracingTextureCount = 0;
+
+    // レイトレーシング用 頂点位置バッファ配列の領域（連続して配置）
+    // 物理的には200番から開始
+    static const UINT RAYTRACING_VERTEX_POSITION_ARRAY_START = 200;
+    static const UINT RAYTRACING_VERTEX_POSITION_ARRAY_SIZE = 256;
+    UINT _raytracingVertexPositionBaseIndex = RAYTRACING_VERTEX_POSITION_ARRAY_START;
+    UINT _raytracingVertexPositionCount = 0;
 
 public:
 

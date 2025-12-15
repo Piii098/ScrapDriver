@@ -21,6 +21,9 @@ bool DescriptorManager::Initialize() {
     _cpuHandleStart = _heap->GetCPUDescriptorHandleForHeapStart();
 
     _descriptorSize = DIRECT3D.Device().GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+    // 固定連続領域（レイトレ用テクスチャ配列/頂点位置配列）を避けて、通常割り当ての開始位置を後ろにずらす
+    _currentSVRIndex = 300;
     return true;
 }
 
@@ -122,6 +125,39 @@ UINT DescriptorManager::RegisterRaytracingTexture(ID3D12Resource* texture, DXGI_
     SDL_Log("[RT_TEXTURE] Registered at absolute=%d, relative=%d, ptr=%p", 
         index, relativeIndex, (void*)texture);
     return relativeIndex;  // 配列内での相対インデックスを返す
+}
+
+UINT DescriptorManager::RegisterRaytracingVertexPositionBuffer(ID3D12Resource* vertexPositionBuffer, UINT vertexCount) {
+    if (_raytracingVertexPositionCount >= RAYTRACING_VERTEX_POSITION_ARRAY_SIZE) {
+        SDL_Log("Error: Raytracing vertex position array is full (max: %d)", RAYTRACING_VERTEX_POSITION_ARRAY_SIZE);
+        return static_cast<UINT>(-1);
+    }
+
+    UINT index = RAYTRACING_VERTEX_POSITION_ARRAY_START + _raytracingVertexPositionCount;
+
+    D3D12_CPU_DESCRIPTOR_HANDLE handle = _heap->GetCPUDescriptorHandleForHeapStart();
+    handle.ptr += _descriptorSize * index;
+
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Buffer.FirstElement = 0;
+    srvDesc.Buffer.NumElements = vertexCount;
+    srvDesc.Buffer.StructureByteStride = sizeof(float) * 3;
+    srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+
+    DIRECT3D.Device().CreateShaderResourceView(
+        vertexPositionBuffer,
+        &srvDesc,
+        handle);
+
+    UINT relativeIndex = _raytracingVertexPositionCount;
+    _raytracingVertexPositionCount++;
+
+    SDL_Log("[RT_VB] Registered vertex position buffer at absolute=%d, relative=%d, vertices=%u, ptr=%p",
+        index, relativeIndex, vertexCount, (void*)vertexPositionBuffer);
+    return relativeIndex;
 }
 
 void DescriptorManager::BindDescriptorHeaps() {

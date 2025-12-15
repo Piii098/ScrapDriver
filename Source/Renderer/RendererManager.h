@@ -59,7 +59,7 @@ private:
 
 	// レイトレーシング関連
 	std::unique_ptr<RaytracingManager> _raytracingManager;
-	RenderingMode _renderingMode = RenderingMode::RASTERIZATION;
+	RenderingMode _renderingMode = RenderingMode::RAYTRACING;
 	
 	// ModelComponent管理
 	std::vector<class ModelComponent*> _registeredModels;
