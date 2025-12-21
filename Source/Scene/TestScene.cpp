@@ -58,7 +58,7 @@ void TestScene::LoadObjects()
 	// 床オブジェクト
 	object = CreateGameObject<GameObject>();
 	object->Name("Floor");
-	object->Position(0.0f, -1.0f, 0.0f);
+	object->Position(0.0f, -1.0f, 300.0f);
 	object->Rotation(Quaternion::FromAxisAngle(Vector3::UnitX, Math::ToRadians(90.0f)));
 	object->Scale(1000.0f, 1000.0f, 1.0f);
 
@@ -91,6 +91,22 @@ void TestScene::LoadObjects()
 	material.materialType = 0;
 	material.uvScale = Vector2(1.0f, 1.0f);
     modelComp->SetMaterial(material);
+
+	object = CreateGameObject<GameObject>();
+	object->Name("Light");
+	object->Position(-50.0f, 20.0f, 0.0f);
+	object->Rotation(Quaternion::FromAxisAngle(Vector3::UnitZ, Math::ToRadians(-45.0f)));
+	object->Scale(1.0f, 1.0f, 1.0f);
+	modelComp = object->CreateComponent<ModelComponent>();
+	modelComp->LoadCube(20.0f);
+
+	material.baseColor = Vector4(0.55f, 0.56f, 1.00f, 1.0f); // 鉄のグレー
+	material.metallic = 0.5f;
+	material.roughness = 0.6f;
+	material.reflectance = 0.6f;
+	material.materialType = 0;
+	material.uvScale = Vector2(1.0f, 1.0f);
+	modelComp->SetMaterial(material);
 
 }
 

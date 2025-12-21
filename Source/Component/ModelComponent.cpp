@@ -94,6 +94,71 @@ void GenerateSphereMesh(float radius, int slices, int stacks, std::vector<Vertex
     }
 }
 
+void GenerateCubeMesh(float size, std::vector<Vertex>& outVertices, std::vector<unsigned short>& outIndices) {
+    const float half = size * 0.5f;
+
+    outVertices.clear();
+    outIndices.clear();
+
+    outVertices.reserve(24);
+    outIndices.reserve(36);
+
+    const Vector4 color(1.0f, 1.0f, 1.0f, 1.0f);
+
+    auto addFace = [&](const Vector3& normal, const Vector3& tangent,
+               const Vector3& p0, const Vector3& p1, const Vector3& p2, const Vector3& p3) {
+    const unsigned short base = static_cast<unsigned short>(outVertices.size());
+
+    Vertex v0 = {}; v0.Position = p0; v0.Normal = normal; v0.Tangent = tangent; v0.UV = Vector2(0.0f, 1.0f); v0.Color = color;
+    Vertex v1 = {}; v1.Position = p1; v1.Normal = normal; v1.Tangent = tangent; v1.UV = Vector2(0.0f, 0.0f); v1.Color = color;
+    Vertex v2 = {}; v2.Position = p2; v2.Normal = normal; v2.Tangent = tangent; v2.UV = Vector2(1.0f, 1.0f); v2.Color = color;
+    Vertex v3 = {}; v3.Position = p3; v3.Normal = normal; v3.Tangent = tangent; v3.UV = Vector2(1.0f, 0.0f); v3.Color = color;
+
+    outVertices.push_back(v0);
+    outVertices.push_back(v1);
+    outVertices.push_back(v2);
+    outVertices.push_back(v3);
+
+    // 0,1,2 / 2,1,3
+    outIndices.push_back(base + 0);
+    outIndices.push_back(base + 1);
+    outIndices.push_back(base + 2);
+    outIndices.push_back(base + 2);
+    outIndices.push_back(base + 1);
+    outIndices.push_back(base + 3);
+    };
+
+    // +Z (front)
+    addFace(Vector3(0.0f, 0.0f, 1.0f), Vector3(1.0f, 0.0f, 0.0f),
+        Vector3(-half, -half,  half), Vector3(-half,  half,  half),
+        Vector3( half, -half,  half), Vector3( half,  half,  half));
+
+    // -Z (back)
+    addFace(Vector3(0.0f, 0.0f, -1.0f), Vector3(-1.0f, 0.0f, 0.0f),
+        Vector3( half, -half, -half), Vector3( half,  half, -half),
+        Vector3(-half, -half, -half), Vector3(-half,  half, -half));
+
+    // +X (right)
+    addFace(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, -1.0f),
+        Vector3( half, -half,  half), Vector3( half,  half,  half),
+        Vector3( half, -half, -half), Vector3( half,  half, -half));
+
+    // -X (left)
+    addFace(Vector3(-1.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 1.0f),
+        Vector3(-half, -half, -half), Vector3(-half,  half, -half),
+        Vector3(-half, -half,  half), Vector3(-half,  half,  half));
+
+    // +Y (top)
+    addFace(Vector3(0.0f, 1.0f, 0.0f), Vector3(1.0f, 0.0f, 0.0f),
+        Vector3(-half,  half,  half), Vector3(-half,  half, -half),
+        Vector3( half,  half,  half), Vector3( half,  half, -half));
+
+    // -Y (bottom)
+    addFace(Vector3(0.0f, -1.0f, 0.0f), Vector3(1.0f, 0.0f, 0.0f),
+        Vector3(-half, -half, -half), Vector3(-half, -half,  half),
+        Vector3( half, -half, -half), Vector3( half, -half,  half));
+}
+
 } // namespace
 
 ModelComponent::ModelComponent(class GameObject& parent, int updateLayer)
@@ -252,6 +317,68 @@ bool ModelComponent::LoadQuad() {
         return false;
     }
     
+    _needsRaytracingUpdate = true;
+    return true;
+}
+
+bool ModelComponent::LoadCube(float size) {
+    _modelType = ModelType::CUBE;
+
+    for (auto vb : _vertexBuffers) delete vb;
+    for (auto ib : _indexBuffers) delete ib;
+    for (auto tex : _textures) delete tex;
+    _vertexBuffers.clear();
+    _indexBuffers.clear();
+    _textures.clear();
+    _textureIndices.clear();
+    _meshes.clear();
+    _quadVertices.clear();
+    _quadIndices.clear();
+
+    std::vector<Vertex> vertices;
+    std::vector<unsigned short> indices;
+    GenerateCubeMesh(size, vertices, indices);
+
+    if (vertices.empty() || indices.empty()) {
+        SDL_Log("ModelComponent: Failed to generate cube mesh");
+        return false;
+    }
+
+    Mesh cubeMesh = {};
+    cubeMesh.Vertices = std::move(vertices);
+    cubeMesh.Indices = std::move(indices);
+    _meshes.push_back(std::move(cubeMesh));
+
+    auto vb = new VertexBuffer(_meshes[0].Vertices.data(), _meshes[0].Vertices.size());
+    if (!vb->IsValid()) {
+        delete vb;
+        _meshes.clear();
+        return false;
+    }
+    _vertexBuffers.push_back(vb);
+
+    auto ib = new IndexBuffer(_meshes[0].Indices.data(), _meshes[0].Indices.size());
+    if (!ib->IsValid()) {
+        delete ib;
+        delete _vertexBuffers.back();
+        _vertexBuffers.clear();
+        _meshes.clear();
+        return false;
+    }
+    _indexBuffers.push_back(ib);
+
+    Texture2D* mainTex = nullptr;
+    if (_texture && _texture->IsValid()) {
+        mainTex = _texture;
+    } else {
+        mainTex = Texture2D::GetWhite();
+    }
+
+    if (mainTex) {
+        _textures.push_back(mainTex);
+        _textureIndices.push_back(mainTex->GetDescriptorIndex());
+    }
+
     _needsRaytracingUpdate = true;
     return true;
 }
@@ -422,7 +549,7 @@ void ModelComponent::UpdateRaytracingMesh() {
                 renderer.GetRaytracingManager()->SetMeshTexture(_raytracingMeshId, _texture);
             }
         }
-    } else if (_modelType == ModelType::MESH_FILE || _modelType == ModelType::SPHERE) {
+    } else if (_modelType == ModelType::MESH_FILE || _modelType == ModelType::SPHERE || _modelType == ModelType::CUBE) {
         // メッシュファイル/生成メッシュ用の処理（TODO: 複数メッシュ対応）
         // 現状は最初のメッシュのみ
         if (!_meshes.empty()) {
