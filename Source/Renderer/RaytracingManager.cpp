@@ -148,7 +148,7 @@ bool RaytracingManager::CreateMaterialBuffer() {
     auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
     
     // 256バイトアラインメント
-    UINT bufferSize = (sizeof(RaytracingMaterialData) + 255) & ~255;
+    UINT bufferSize = (sizeof(RaytracingLightingData) + 255) & ~255;
     auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
     
     HRESULT hr = DIRECT3D.Device().CreateCommittedResource(
@@ -203,19 +203,15 @@ void RaytracingManager::UpdateCameraBuffer() {
 }
 
 void RaytracingManager::UpdateMaterialBuffer() {
-    RaytracingMaterialData materialData = {};
-    
-    // より現実的な値に調整
-    materialData.reflectanceCoef = 0.3f;  // 0.9 → 0.5に変更
-    materialData.diffuseCoef = 0.9f;      // 0.3 → 0.5に変更（reflectanceCoefと足して1.0）
-    materialData.specularCoef = 0.8f;     // 0.8 → 0.3に変更
-    materialData.specularPower = 64.0f;
-    materialData.lightPosition = Vector3(2.0f, 5.0f, -3.0f);
-    materialData.ambientIntensity = 0.45f; // ベースを明るく（0.0〜1.0）
-    materialData.lightColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-    
+    RaytracingLightingData lightingData = {};
+
+    // シーン共通のライト設定（係数は PerMeshMaterialData 側で制御）
+    lightingData.lightPosition = Vector3(2.0f, 200.0f, -3.0f);
+    lightingData.ambientIntensity = 0.45f; // ベースを明るく（0.0〜1.0）
+    lightingData.lightColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+
     // Constant Bufferにデータをコピー
-    memcpy(_materialBufferMapped, &materialData, sizeof(RaytracingMaterialData));
+    memcpy(_materialBufferMapped, &lightingData, sizeof(RaytracingLightingData));
 }
 
 bool RaytracingManager::AddTriangle(float* vertices, int vertexCount) {
@@ -228,12 +224,20 @@ int RaytracingManager::AddMesh(const std::vector<Vertex>& vertices, const std::v
     // 頂点データをfloat配列に変換（位置のみ）
     std::vector<float> meshVertices;
     meshVertices.reserve(indices.size() * 3); // 各インデックスから3つのfloat（xyz）
+
+    // 頂点法線（スムースシェーディング用）
+    std::vector<float> meshNormals;
+    meshNormals.reserve(indices.size() * 3);
     
     for (unsigned short index : indices) {
         if (index < vertices.size()) {
             meshVertices.push_back(vertices[index].Position.x);
             meshVertices.push_back(vertices[index].Position.y);
             meshVertices.push_back(vertices[index].Position.z);
+
+            meshNormals.push_back(vertices[index].Normal.x);
+            meshNormals.push_back(vertices[index].Normal.y);
+            meshNormals.push_back(vertices[index].Normal.z);
         }
     }
     
@@ -245,6 +249,7 @@ int RaytracingManager::AddMesh(const std::vector<Vertex>& vertices, const std::v
     
     // メッシュデータを保持（遅延構築用）
     _meshVertices.push_back(meshVertices);
+    _meshNormals.push_back(meshNormals);
     _needsRebuild = true;
     
     // デフォルトマテリアルを追加
@@ -282,12 +287,20 @@ bool RaytracingManager::UpdateMesh(int meshId, const std::vector<Vertex>& vertic
     // 頂点データをfloat配列に変換（位置のみ）
     std::vector<float> meshVertices;
     meshVertices.reserve(indices.size() * 3);
+
+    // 頂点法線
+    std::vector<float> meshNormals;
+    meshNormals.reserve(indices.size() * 3);
     
     for (unsigned short index : indices) {
         if (index < vertices.size()) {
             meshVertices.push_back(vertices[index].Position.x);
             meshVertices.push_back(vertices[index].Position.y);
             meshVertices.push_back(vertices[index].Position.z);
+
+            meshNormals.push_back(vertices[index].Normal.x);
+            meshNormals.push_back(vertices[index].Normal.y);
+            meshNormals.push_back(vertices[index].Normal.z);
         }
     }
     
@@ -296,6 +309,11 @@ bool RaytracingManager::UpdateMesh(int meshId, const std::vector<Vertex>& vertic
     
     // 既存のメッシュデータを更新
     _meshVertices[meshId] = meshVertices;
+
+    if (static_cast<int>(_meshNormals.size()) <= meshId) {
+        _meshNormals.resize(static_cast<size_t>(meshId) + 1);
+    }
+    _meshNormals[meshId] = meshNormals;
     _needsRebuild = true;
     
     return true;
@@ -362,7 +380,7 @@ void RaytracingManager::Render() {
             _accelerationStructure = std::make_unique<AccelerationStructure>();
         }
         
-        if (_accelerationStructure->BuildMultipleMeshes(_meshVertices)) {
+        if (_accelerationStructure->BuildMultipleMeshes(_meshVertices, _meshNormals)) {
             SDL_Log("Acceleration Structure built successfully with %zu meshes", _meshVertices.size());
             _needsRebuild = false;
         } else {
@@ -440,6 +458,11 @@ void RaytracingManager::Render() {
     UINT raytracingVertexBase = DESCRIPTORMANAGER.GetRaytracingVertexPositionArrayBaseIndex();
     D3D12_GPU_DESCRIPTOR_HANDLE vertexArrayHandle = DESCRIPTORMANAGER.GetGPUHandleAt(raytracingVertexBase);
     commandList.SetComputeRootDescriptorTable(7, vertexArrayHandle);
+
+    // レイトレーシング用 頂点法線バッファ配列をバインド（連続した領域から）
+    UINT raytracingNormalBase = DESCRIPTORMANAGER.GetRaytracingVertexNormalArrayBaseIndex();
+    D3D12_GPU_DESCRIPTOR_HANDLE normalArrayHandle = DESCRIPTORMANAGER.GetGPUHandleAt(raytracingNormalBase);
+    commandList.SetComputeRootDescriptorTable(8, normalArrayHandle);
     
     // デバッグ用（初回のみログ出力）
     static bool logged = false;
@@ -455,6 +478,12 @@ void RaytracingManager::Render() {
         SDL_Log("  Buffer Count: %d", DESCRIPTORMANAGER.GetRaytracingVertexPositionCount());
         SDL_Log("  GPU Handle: %llu", vertexArrayHandle.ptr);
         SDL_Log("  Root Parameter: 7 (Descriptor Table)");
+
+        SDL_Log("=== RAYTRACING VERTEX NORMAL ARRAY BIND ===");
+        SDL_Log("  Base Index: %d", raytracingNormalBase);
+        SDL_Log("  Buffer Count: %d", DESCRIPTORMANAGER.GetRaytracingVertexNormalCount());
+        SDL_Log("  GPU Handle: %llu", normalArrayHandle.ptr);
+        SDL_Log("  Root Parameter: 8 (Descriptor Table)");
         logged = true;
     }
 

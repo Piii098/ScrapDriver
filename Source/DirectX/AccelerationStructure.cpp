@@ -10,6 +10,7 @@ bool AccelerationStructure::BuildSimple(float* vertices, int vertexCount) {
 
     // レイトレ用頂点位置SRV配列をリビルド
     DESCRIPTORMANAGER.ResetRaytracingVertexPositionArray();
+    DESCRIPTORMANAGER.ResetRaytracingVertexNormalArray();
 
     // 頂点バッファ作成（アップロードヒープ）
     UINT64 vertexBufferSize = sizeof(float) * 3 * vertexCount;
@@ -41,6 +42,59 @@ bool AccelerationStructure::BuildSimple(float* vertices, int vertexCount) {
     {
         UINT count = static_cast<UINT>(vertexCount);
         DESCRIPTORMANAGER.RegisterRaytracingVertexPositionBuffer(_vertexBuffer.Get(), count);
+    }
+
+    // StructuredBuffer<float3> として参照するための法線SRVを作成（instanceID=0用）
+    {
+        // 面法線を各頂点に複製（簡易）
+        std::vector<float> normals;
+        normals.resize(static_cast<size_t>(vertexCount) * 3);
+
+        for (int i = 0; i + 2 < vertexCount; i += 3) {
+            Vector3 p0(vertices[(i + 0) * 3 + 0], vertices[(i + 0) * 3 + 1], vertices[(i + 0) * 3 + 2]);
+            Vector3 p1(vertices[(i + 1) * 3 + 0], vertices[(i + 1) * 3 + 1], vertices[(i + 1) * 3 + 2]);
+            Vector3 p2(vertices[(i + 2) * 3 + 0], vertices[(i + 2) * 3 + 1], vertices[(i + 2) * 3 + 2]);
+
+            Vector3 edge1 = p1 - p0;
+            Vector3 edge2 = p2 - p0;
+            Vector3 n = edge1.Cross(edge2);
+            float lenSq = n.Dot(n);
+            if (lenSq > 1e-12f) {
+                n.Normalize();
+            } else {
+                n = Vector3(0.0f, 1.0f, 0.0f);
+            }
+
+            for (int v = 0; v < 3; v++) {
+                int vi = i + v;
+                normals[static_cast<size_t>(vi) * 3 + 0] = n.x;
+                normals[static_cast<size_t>(vi) * 3 + 1] = n.y;
+                normals[static_cast<size_t>(vi) * 3 + 2] = n.z;
+            }
+        }
+
+        UINT64 normalBufferSize = sizeof(float) * 3ull * static_cast<UINT64>(vertexCount);
+        auto uploadHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+        auto normalDesc = CD3DX12_RESOURCE_DESC::Buffer(normalBufferSize);
+
+        if (FAILED(DIRECT3D.Device().CreateCommittedResource(
+            &uploadHeap,
+            D3D12_HEAP_FLAG_NONE,
+            &normalDesc,
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            nullptr,
+            IID_PPV_ARGS(&_normalBuffer)))) {
+            SDL_Log("Failed to create normal buffer");
+            return false;
+        }
+
+        void* mappedNormal = nullptr;
+        _normalBuffer->Map(0, nullptr, &mappedNormal);
+        memcpy(mappedNormal, normals.data(), static_cast<size_t>(normalBufferSize));
+        _normalBuffer->Unmap(0, nullptr);
+
+        UINT count = static_cast<UINT>(vertexCount);
+        DESCRIPTORMANAGER.RegisterRaytracingVertexNormalBuffer(_normalBuffer.Get(), count);
     }
 
     // デバッグ: 頂点データを出力
@@ -152,7 +206,7 @@ bool AccelerationStructure::BuildSimple(float* vertices, int vertexCount) {
     return true;
 }
 
-bool AccelerationStructure::BuildMultipleMeshes(const std::vector<std::vector<float>>& meshVertices) {
+bool AccelerationStructure::BuildMultipleMeshes(const std::vector<std::vector<float>>& meshVertices, const std::vector<std::vector<float>>& meshNormals) {
     auto& device = DIRECT3D.DXRDevice();
     auto& commandList = DIRECT3D.CommandList();
     
@@ -165,9 +219,11 @@ bool AccelerationStructure::BuildMultipleMeshes(const std::vector<std::vector<fl
 
     // レイトレ用頂点位置SRV配列をリビルド
     DESCRIPTORMANAGER.ResetRaytracingVertexPositionArray();
+    DESCRIPTORMANAGER.ResetRaytracingVertexNormalArray();
     
     // クリア
     _vertexBuffers.clear();
+    _normalBuffers.clear();
     _blasList.clear();
     _blasScratchList.clear();
     
@@ -177,6 +233,11 @@ bool AccelerationStructure::BuildMultipleMeshes(const std::vector<std::vector<fl
     // 各メッシュのBLASを構築
     for (size_t meshIdx = 0; meshIdx < meshVertices.size(); meshIdx++) {
         const auto& vertices = meshVertices[meshIdx];
+        const std::vector<float>* normalsPtr = nullptr;
+        if (meshIdx < meshNormals.size() && meshNormals[meshIdx].size() == vertices.size()) {
+            normalsPtr = &meshNormals[meshIdx];
+        }
+
         UINT64 vertexBufferSize = vertices.size() * sizeof(float);
         
         // 頂点バッファ作成
@@ -207,6 +268,62 @@ bool AccelerationStructure::BuildMultipleMeshes(const std::vector<std::vector<fl
         }
         
         _vertexBuffers.push_back(vertexBuffer);
+
+        // 頂点法線バッファ作成（無い場合は面法線から生成）
+        std::vector<float> generatedNormals;
+        if (!normalsPtr) {
+            generatedNormals.resize(vertices.size());
+            const size_t vertexCount = vertices.size() / 3;
+            for (size_t vi = 0; vi + 2 < vertexCount; vi += 3) {
+                Vector3 p0(vertices[(vi + 0) * 3 + 0], vertices[(vi + 0) * 3 + 1], vertices[(vi + 0) * 3 + 2]);
+                Vector3 p1(vertices[(vi + 1) * 3 + 0], vertices[(vi + 1) * 3 + 1], vertices[(vi + 1) * 3 + 2]);
+                Vector3 p2(vertices[(vi + 2) * 3 + 0], vertices[(vi + 2) * 3 + 1], vertices[(vi + 2) * 3 + 2]);
+    
+                Vector3 edge1 = p1 - p0;
+                Vector3 edge2 = p2 - p0;
+                Vector3 n = edge1.Cross(edge2);
+                float lenSq = n.Dot(n);
+                if (lenSq > 1e-12f) {
+                    n.Normalize();
+                } else {
+                    n = Vector3(0.0f, 1.0f, 0.0f);
+                }
+
+                for (size_t v = 0; v < 3; v++) {
+                    size_t outIndex = (vi + v) * 3;
+                    generatedNormals[outIndex + 0] = n.x;
+                    generatedNormals[outIndex + 1] = n.y;
+                    generatedNormals[outIndex + 2] = n.z;
+                }
+            }
+            normalsPtr = &generatedNormals;
+        }
+
+        ComPtr<ID3D12Resource> normalBuffer;
+        UINT64 normalBufferSize = normalsPtr->size() * sizeof(float);
+        bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(normalBufferSize);
+
+        if (FAILED(DIRECT3D.Device().CreateCommittedResource(
+            &uploadHeap,
+            D3D12_HEAP_FLAG_NONE,
+            &bufferDesc,
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            nullptr,
+            IID_PPV_ARGS(&normalBuffer)))) {
+            SDL_Log("Failed to create normal buffer for mesh %zu", meshIdx);
+            return false;
+        }
+
+        normalBuffer->Map(0, nullptr, &mapped);
+        memcpy(mapped, normalsPtr->data(), static_cast<size_t>(normalBufferSize));
+        normalBuffer->Unmap(0, nullptr);
+
+        {
+            UINT count = static_cast<UINT>(vertices.size() / 3);
+            DESCRIPTORMANAGER.RegisterRaytracingVertexNormalBuffer(normalBuffer.Get(), count);
+        }
+
+        _normalBuffers.push_back(normalBuffer);
         
         // ジオメトリ記述
         D3D12_RAYTRACING_GEOMETRY_DESC geometryDesc = {};

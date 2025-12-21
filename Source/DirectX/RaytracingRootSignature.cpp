@@ -29,7 +29,13 @@ bool RaytracingRootSignature::CreateGlobalRootSignature() {
     vertexPositionArrayRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 256, 19, 0,
         D3D12_DESCRIPTOR_RANGE_FLAG_NONE); // t19-t274
 
-    CD3DX12_ROOT_PARAMETER rootParams[8]; // 頂点位置SRV配列を追加
+    // 頂点法線（StructuredBuffer<float3>）配列用のディスクリプタレンジ
+    // t275 から最大256メッシュ分
+    CD3DX12_DESCRIPTOR_RANGE vertexNormalArrayRange;
+    vertexNormalArrayRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 256, 275, 0,
+        D3D12_DESCRIPTOR_RANGE_FLAG_NONE); // t275-t530
+
+    CD3DX12_ROOT_PARAMETER rootParams[9]; // 頂点位置/法線SRV配列を追加
     rootParams[0].InitAsDescriptorTable(1, &uavRange);      // UAV (u0) - RenderTarget
     rootParams[1].InitAsShaderResourceView(0);              // SRV (t0) - SceneBVH
     rootParams[2].InitAsDescriptorTable(1, &srvRange);      // SRV (t1) - DiffuseTexture
@@ -38,6 +44,7 @@ bool RaytracingRootSignature::CreateGlobalRootSignature() {
     rootParams[5].InitAsDescriptorTable(1, &meshMaterialRange); // SRV (t2) - MeshMaterials
     rootParams[6].InitAsDescriptorTable(1, &textureArrayRange); // SRV (t3[]) - TextureArray
     rootParams[7].InitAsDescriptorTable(1, &vertexPositionArrayRange); // SRV (t19[]) - VertexPositionBuffers
+    rootParams[8].InitAsDescriptorTable(1, &vertexNormalArrayRange);   // SRV (t275[]) - VertexNormalBuffers
     
     // スタティックサンプラーを追加
     D3D12_STATIC_SAMPLER_DESC sampler = {};
@@ -90,6 +97,7 @@ bool RaytracingRootSignature::CreateGlobalRootSignature() {
     SDL_Log("  Root Parameter 5: SRV Descriptor Table (t2 - MeshMaterials)");
     SDL_Log("  Root Parameter 6: SRV Descriptor Table (t3-t18 - 16 Textures)");
     SDL_Log("  Root Parameter 7: SRV Descriptor Table (t19-t274 - 256 VertexPositionBuffers)");
+    SDL_Log("  Root Parameter 8: SRV Descriptor Table (t275-t530 - 256 VertexNormalBuffers)");
     SDL_Log("  Static Sampler 0: s0");
 
     return true;

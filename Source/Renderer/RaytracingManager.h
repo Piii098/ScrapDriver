@@ -51,6 +51,7 @@ private:
     
     // 追加されたメッシュのデータを保持
     std::vector<std::vector<float>> _meshVertices;
+    std::vector<std::vector<float>> _meshNormals;
     
     // メッシュごとのマテリアルデータ
     std::vector<PerMeshMaterialData> _meshMaterials;

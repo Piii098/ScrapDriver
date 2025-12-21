@@ -22,8 +22,8 @@ bool DescriptorManager::Initialize() {
 
     _descriptorSize = DIRECT3D.Device().GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-    // 固定連続領域（レイトレ用テクスチャ配列/頂点位置配列）を避けて、通常割り当ての開始位置を後ろにずらす
-    _currentSVRIndex = 300;
+    // 固定連続領域（レイトレ用テクスチャ配列/頂点位置配列/頂点法線配列）を避けて、通常割り当ての開始位置を後ろにずらす
+    _currentSVRIndex = 800;
     return true;
 }
 
@@ -157,6 +157,39 @@ UINT DescriptorManager::RegisterRaytracingVertexPositionBuffer(ID3D12Resource* v
 
     SDL_Log("[RT_VB] Registered vertex position buffer at absolute=%d, relative=%d, vertices=%u, ptr=%p",
         index, relativeIndex, vertexCount, (void*)vertexPositionBuffer);
+    return relativeIndex;
+}
+
+UINT DescriptorManager::RegisterRaytracingVertexNormalBuffer(ID3D12Resource* vertexNormalBuffer, UINT vertexCount) {
+    if (_raytracingVertexNormalCount >= RAYTRACING_VERTEX_NORMAL_ARRAY_SIZE) {
+        SDL_Log("Error: Raytracing vertex normal array is full (max: %d)", RAYTRACING_VERTEX_NORMAL_ARRAY_SIZE);
+        return static_cast<UINT>(-1);
+    }
+
+    UINT index = RAYTRACING_VERTEX_NORMAL_ARRAY_START + _raytracingVertexNormalCount;
+
+    D3D12_CPU_DESCRIPTOR_HANDLE handle = _heap->GetCPUDescriptorHandleForHeapStart();
+    handle.ptr += _descriptorSize * index;
+
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Buffer.FirstElement = 0;
+    srvDesc.Buffer.NumElements = vertexCount;
+    srvDesc.Buffer.StructureByteStride = sizeof(float) * 3;
+    srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+
+    DIRECT3D.Device().CreateShaderResourceView(
+        vertexNormalBuffer,
+        &srvDesc,
+        handle);
+
+    UINT relativeIndex = _raytracingVertexNormalCount;
+    _raytracingVertexNormalCount++;
+
+    SDL_Log("[RT_NB] Registered vertex normal buffer at absolute=%d, relative=%d, vertices=%u, ptr=%p",
+        index, relativeIndex, vertexCount, (void*)vertexNormalBuffer);
     return relativeIndex;
 }
 

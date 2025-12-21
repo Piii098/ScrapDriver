@@ -60,72 +60,37 @@ void TestScene::LoadObjects()
 	object->Name("Floor");
 	object->Position(0.0f, -1.0f, 0.0f);
 	object->Rotation(Quaternion::FromAxisAngle(Vector3::UnitX, Math::ToRadians(90.0f)));
-	object->Scale(100.0f, 100.0f, 1.0f);
+	object->Scale(1000.0f, 1000.0f, 1.0f);
 
 	modelComp = object->CreateComponent<ModelComponent>();
 	modelComp->LoadQuad();
-	modelComp->SetTexture("Assets/texture.jpg");
+	//modelComp->SetTexture("Assets/texture.jpg");
 
-	material.baseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+	material.baseColor = Vector4(0.4f, 0.4f, 0.8f, 1.0f);
 	material.metallic = 0.0f;
 	material.roughness = 0.0f;
-	material.reflectance = 1.0f;
-	material.materialType = 0;
-	material.uvScale = Vector2(1.0f, 1.0f);
-	modelComp->SetMaterial(material);
-
-	// 壁オブジェクト
-	object = CreateGameObject<GameObject>();
-	object->Name("Wall");
-	object->Position(0.0f, 50.0f, 50.0f);
-	object->Rotation(Quaternion::FromAxisAngle(Vector3::UnitX, Math::ToRadians(0.0f)));
-	object->Scale(100.0f, 100.0f, 1.0f);
-	modelComp = object->CreateComponent<ModelComponent>();
-	modelComp->LoadQuad();
-	modelComp->SetTexture("Assets/Metal.jpg");
-
-	material.baseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-	material.metallic = 1.0f;
-	material.roughness = 0.9f;
-	material.reflectance = 0.2f;
-	material.materialType = 0;
-	material.uvScale = Vector2(1.0f, 1.0f);
-	modelComp->SetMaterial(material);
-
-	// 壁オブジェクト
-	object = CreateGameObject<GameObject>();
-	object->Name("Wall");
-	object->Position(0.0f, 50.0f, -50.0f);
-	object->Rotation(Quaternion::FromAxisAngle(Vector3::UnitX, Math::ToRadians(0.0f)));
-	object->Scale(100.0f, 100.0f, 1.0f);
-	modelComp = object->CreateComponent<ModelComponent>();
-	modelComp->LoadQuad();
-	modelComp->SetTexture("Assets/texture.jpg");
-
-	material.baseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-	material.metallic = 1.0f;
-	material.roughness = 0.9f;
-	material.reflectance = 0.2f;
+	material.reflectance = 0.0f;
 	material.materialType = 0;
 	material.uvScale = Vector2(1.0f, 1.0f);
 	modelComp->SetMaterial(material);
 
 	// 球オブジェクト（ラスタライズ動作確認用）
-	object = CreateGameObject<GameObject>();
-	object->Name("Sphere");
-	object->Position(0.0f, 20.0f, 0.0f); // 半径1で床(y=-1)に接地
-	object->Scale(10.0f, 10.0f, 10.0f);
-	modelComp = object->CreateComponent<ModelComponent>();
-	modelComp->LoadSphere(1.0f, 24, 16);
-	modelComp->SetTexture("Assets/texture.jpg");
+    object = CreateGameObject<GameObject>();
+    object->Name("Sphere");
+    object->Position(0.0f, 20.0f, 0.0f); // 半径1で床(y=-1)に接地
+    object->Scale(10.0f, 10.0f, 10.0f);
+    modelComp = object->CreateComponent<ModelComponent>();
+    modelComp->LoadSphere(1.0f, 24, 16);
+    //modelComp->SetTexture("Assets/texture.jpg");
 
-	material.baseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-	material.metallic = 0.1f;
-	material.roughness = 0.4f;
-	material.reflectance = 0.5f;
+    // 鉄っぽい見た目（高メタル・中程度の粗さ・強い反射）
+	material.baseColor = Vector4(0.55f, 0.56f, 0.58f, 1.0f); // 鉄のグレー
+	material.metallic = 1.0f;
+	material.roughness = 0.25f;
+	material.reflectance = 0.9f;
 	material.materialType = 0;
 	material.uvScale = Vector2(1.0f, 1.0f);
-	modelComp->SetMaterial(material);
+    modelComp->SetMaterial(material);
 
 }
 

@@ -5,6 +5,9 @@ RWTexture2D<float4> RenderTarget : register(u0);
 
 #define MAX_VERTEX_BUFFERS 256 // Must match kMaxRaytracingVertexBuffers in C++
 StructuredBuffer<float3> VertexBuffers[MAX_VERTEX_BUFFERS] : register(t19);
+// 頂点法線（StructuredBuffer<float3>）配列
+// VertexBuffers が t19-t274 を占有するため、その後ろの t275 から開始
+StructuredBuffer<float3> NormalBuffers[MAX_VERTEX_BUFFERS] : register(t275);
 
 // メッシュごとのマテリアルデータ配列
 struct PerMeshMaterialData {
@@ -43,16 +46,13 @@ cbuffer CameraData : register(b0)
     float _padding2;
 }
 
-// マテリアルデータ
-cbuffer MaterialData : register(b1)
+// ライトデータ（シーン共通）
+// 係数（拡散/鏡面/反射の強さなど）は PerMeshMaterialData 側で制御する。
+cbuffer LightingData : register(b1)
 {
-    float reflectanceCoef;      
-    float diffuseCoef;          
-    float specularCoef;         
-    float specularPower;        
-    float3 lightPosition;       
-    float ambientIntensity;     
-    float4 lightColor;          
+    float3 lightPosition;
+    float ambientIntensity;
+    float4 lightColor;
 }
 
 struct RayPayload
@@ -124,9 +124,32 @@ void MyClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersection
     float3 p1 = mul(objectToWorld, float4(VertexBuffers[instanceID][baseVertex + 1], 1.0f));
     float3 p2 = mul(objectToWorld, float4(VertexBuffers[instanceID][baseVertex + 2], 1.0f));
 
-    float3 normal = cross(p1 - p0, p2 - p0);
-    float normalLenSq = dot(normal, normal);
-    normal = (normalLenSq > 1e-8f) ? normalize(normal) : float3(0, 1, 0);
+    // 面法線（ワールド空間）
+    float3 faceNormal = cross(p1 - p0, p2 - p0);
+    float faceNormalLenSq = dot(faceNormal, faceNormal);
+    faceNormal = (faceNormalLenSq > 1e-8f) ? normalize(faceNormal) : float3(0, 1, 0);
+
+    // スムース法線：頂点法線をバリセントリック補間（オブジェクト空間 -> ワールド空間）
+    float2 bary = attr.barycentrics;
+    float b0 = 1.0f - bary.x - bary.y;
+    float b1 = bary.x;
+    float b2 = bary.y;
+
+    float3 n0 = NormalBuffers[instanceID][baseVertex + 0];
+    float3 n1 = NormalBuffers[instanceID][baseVertex + 1];
+    float3 n2 = NormalBuffers[instanceID][baseVertex + 2];
+
+    float3 objectNormal = n0 * b0 + n1 * b1 + n2 * b2;
+    float objectNormalLenSq = dot(objectNormal, objectNormal);
+    objectNormal = (objectNormalLenSq > 1e-8f) ? normalize(objectNormal) : float3(0, 1, 0);
+
+    float3x3 worldToObject = (float3x3)WorldToObject3x4();
+    float3 smoothNormal = mul(transpose(worldToObject), objectNormal);
+    float smoothNormalLenSq = dot(smoothNormal, smoothNormal);
+    smoothNormal = (smoothNormalLenSq > 1e-8f) ? normalize(smoothNormal) : faceNormal;
+
+    // 非対応メッシュ/法線が無効な場合に備えてフォールバック
+    float3 normal = (smoothNormalLenSq > 1e-8f) ? smoothNormal : faceNormal;
 
     // 安全対策（ゼロ除算を避ける）
     float eps = 1e-6f;
@@ -146,23 +169,42 @@ void MyClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersection
         tex = TextureArray[meshMaterial.textureIndex].SampleLevel(DiffuseSampler, uv, 0).rgb;
     }
 
-    // ライティング計算
+    // メッシュマテリアルのパラメータを使用
+    float3 baseColor = meshMaterial.baseColor.rgb;
+    float metallic = saturate(meshMaterial.metallic);
+    float roughness = saturate(meshMaterial.roughness);
+    float reflectance = saturate(meshMaterial.reflectance);
+
+    float3 albedo = baseColor * tex;
+
     float3 lightDir = normalize(lightPosition - hitPosition);
-    float3 viewDir = normalize(CameraPosition - hitPosition);
-    float3 halfVec = normalize(lightDir + viewDir);
+    float3 viewDir  = normalize(CameraPosition - hitPosition);
+    float3 halfVec  = normalize(lightDir + viewDir);
 
-    // 拡散反射(Lambert)
-    float diffuse = max(dot(normal, lightDir), 0.0f) * diffuseCoef;
+    // --- Fresnel（Schlick 近似）---
+    float NoV = saturate(dot(normal, viewDir));          // 法線と視線の角度
+    // 金属度と反射率から基礎反射率 F0 を決定（0.04 は非金属の典型値）
+    float3 F0 = lerp(float3(0.04f, 0.04f, 0.04f), albedo * reflectance, metallic);
+    float3 fresnel = F0 + (1.0f - F0) * pow(1.0f - NoV, 5.0f);
 
-    // 鏡面反射(Blinn-Phong)
-    float specular = pow(max(dot(normal, halfVec), 0.0f), specularPower) * specularCoef;
+
+    // 拡散反射(Lambert) — metallic/reflectance が高いほど減衰
+    float diffuseStrength = (1.0f - metallic) * (1.0f - 0.5f * reflectance);
+    diffuseStrength = saturate(diffuseStrength);
+    float diffuse = max(dot(normal, lightDir), 0.0f) * diffuseStrength;
+
+    // 鏡面反射(Blinn-Phong) — roughness で鋭さ、reflectance で強さを制御
+    float gloss = 1.0f - roughness;
+    float specPower = lerp(8.0f, 128.0f, gloss);
+    float specStrength = lerp(0.04f, 1.0f, reflectance);
+    float specular = pow(max(dot(normal, halfVec), 0.0f), specPower) * specStrength;
 
     // 環境光
-    float3 ambient = tex * ambientIntensity;
+    float3 ambient = albedo * ambientIntensity;
 
-    // 反射レイを飛ばす
+    // 反射レイを飛ばす（メッシュごとの反射率を使用）
     float3 reflectColor = float3(0, 0, 0);
-    if (reflectanceCoef > 0.001f && payload.depth < MAX_BOUNCES)
+    if (reflectance > 0.001f && payload.depth < MAX_BOUNCES)
     {
         float3 reflectDir = reflect(WorldRayDirection(), normal);
 
@@ -180,10 +222,11 @@ void MyClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersection
         reflectColor = reflectPayload.color.rgb;
     }
 
-    // 最終色の合成
-    float3 finalColor = ambient + 
-                        (diffuse * tex + specular) * lightColor.rgb +
-                        reflectColor * reflectanceCoef;
+    // 最終色の合成（メッシュ単位のパラメータを反映）
+    float3 lighting = ambient + (diffuse * albedo + specular) * lightColor.rgb;
+
+    // フレネルで反射寄りにブレンド（斜めほど reflectColor / ハイライトが強くなる）
+    float3 finalColor = lighting * (1.0f - fresnel) + (lighting + reflectColor * reflectance) * fresnel;
 
     payload.color = float4(finalColor, 1.0f);
 }

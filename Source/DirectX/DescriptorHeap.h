@@ -27,6 +27,12 @@ public:
     UINT RegisterRaytracingVertexPositionBuffer(ID3D12Resource* vertexPositionBuffer, UINT vertexCount);
     UINT GetRaytracingVertexPositionArrayBaseIndex() const { return _raytracingVertexPositionBaseIndex; }
     UINT GetRaytracingVertexPositionCount() const { return _raytracingVertexPositionCount; }
+
+    // レイトレーシング用 頂点法線バッファ配列（StructuredBuffer<float3>）管理
+    void ResetRaytracingVertexNormalArray() { _raytracingVertexNormalCount = 0; }
+    UINT RegisterRaytracingVertexNormalBuffer(ID3D12Resource* vertexNormalBuffer, UINT vertexCount);
+    UINT GetRaytracingVertexNormalArrayBaseIndex() const { return _raytracingVertexNormalBaseIndex; }
+    UINT GetRaytracingVertexNormalCount() const { return _raytracingVertexNormalCount; }
     
     void BindDescriptorHeaps();
     D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle();
@@ -66,6 +72,13 @@ private:
     UINT _raytracingVertexPositionBaseIndex = RAYTRACING_VERTEX_POSITION_ARRAY_START;
     UINT _raytracingVertexPositionCount = 0;
 
+    // レイトレーシング用 頂点法線バッファ配列の領域（連続して配置）
+    // 物理的には頂点位置配列の直後（456番）から開始
+    static const UINT RAYTRACING_VERTEX_NORMAL_ARRAY_START = RAYTRACING_VERTEX_POSITION_ARRAY_START + RAYTRACING_VERTEX_POSITION_ARRAY_SIZE;
+    static const UINT RAYTRACING_VERTEX_NORMAL_ARRAY_SIZE = 256;
+    UINT _raytracingVertexNormalBaseIndex = RAYTRACING_VERTEX_NORMAL_ARRAY_START;
+    UINT _raytracingVertexNormalCount = 0;
+
 public:
 
     static void CreateInstance() {
@@ -84,6 +97,7 @@ public:
         return *s_instance;
     }
 };
+
 
 #define DESCRIPTORMANAGER DescriptorManager::Instance()
 

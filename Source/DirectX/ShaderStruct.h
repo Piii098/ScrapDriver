@@ -39,12 +39,9 @@ struct RaytracingCameraData {
 	float _padding2;
 };
 
-// レイトレーシング用マテリアルデータ（グローバル設定）
-struct RaytracingMaterialData {
-	float reflectanceCoef;      // 反射係数
-	float diffuseCoef;          // 拡散反射係数
-	float specularCoef;         // 鏡面反射係数
-	float specularPower;        // 鏡面反射の鋭さ
+// レイトレーシング用ライトデータ（シーン共通）
+// 係数（拡散/鏡面/反射の強さなど）は PerMeshMaterialData 側で制御する。
+struct RaytracingLightingData {
 	Vector3 lightPosition;      // ライト位置
 	float ambientIntensity;     // 環境光の強さ（0-1）
 	Vector4 lightColor;         // ライト色（RGBA）
