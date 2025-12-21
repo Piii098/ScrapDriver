@@ -211,6 +211,7 @@
     <ClCompile Include="Source\Resource\AssetManager.cpp" />
     <ClCompile Include="Source\Resource\LoadingScene.cpp" />
     <ClCompile Include="Source\Resource\Model.cpp" />
+    <ClCompile Include="Source\Scene\RaytracingSampleScene.cpp" />
     <ClCompile Include="Source\Scene\TestScene.cpp" />
     <ClCompile Include="Source\Utility\Math.cpp" />
     <ClCompile Include="Source\DirectX\VertexBuffer.cpp" />
@@ -253,6 +254,7 @@
     <ClInclude Include="Source\Resource\AssetManager.h" />
     <ClInclude Include="Source\Resource\LoadingScene.h" />
     <ClInclude Include="Source\Resource\Model.h" />
+    <ClInclude Include="Source\Scene\RaytracingSampleScene.h" />
     <ClInclude Include="Source\Scene\TestScene.h" />
     <ClInclude Include="Source\Utility\Math.h" />
     <ClInclude Include="Source\DirectX\VertexBuffer.h" />

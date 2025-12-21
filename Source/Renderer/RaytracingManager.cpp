@@ -206,9 +206,9 @@ void RaytracingManager::UpdateMaterialBuffer() {
     RaytracingLightingData lightingData = {};
 
     // シーン共通のライト設定（係数は PerMeshMaterialData 側で制御）
-    lightingData.lightPosition = Vector3(200.0f, 200.0f, 0.0f);
-    lightingData.ambientIntensity = 0.3f; // ベースを明るく（0.0〜1.0）
-    lightingData.lightColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+    lightingData.lightPosition = Vector3(200.0f, 198.0f, 0.0f);
+    lightingData.ambientIntensity = 0.2f; // ベースを明るく（0.0〜1.0）
+    lightingData.lightColor = Vector4(0.6f, 0.6f, 0.6f, 1.0f);
 
     // Constant Bufferにデータをコピー
     memcpy(_materialBufferMapped, &lightingData, sizeof(RaytracingLightingData));

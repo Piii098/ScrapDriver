@@ -7,6 +7,7 @@
 #include "Component/PlaneComponent.h"
 #include "Component/RaytracingModelComponent.h"
 #include "Component/CameraComponent.h"
+#include "Scene/RaytracingSampleScene.h"
 #include "Scene/TestScene.h"
 
 SceneManager* SceneManager::s_instance = nullptr;
@@ -21,7 +22,7 @@ SceneManager::~SceneManager() {
 
 bool SceneManager::Initialize() {
 
-	TestScene* scene = new TestScene();
+	RaytracingSampleScene* scene = new RaytracingSampleScene();
 
 	AddScene("Main", std::shared_ptr<Scene>(scene));
     if(ChangeScene("Main")){
