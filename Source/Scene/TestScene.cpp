@@ -108,6 +108,22 @@ void TestScene::LoadObjects()
 	material.uvScale = Vector2(1.0f, 1.0f);
 	modelComp->SetMaterial(material);
 
+	object = CreateGameObject<GameObject>();
+	object->Name("Light");
+	object->Position(50.0f, 20.0f, 0.0f);
+	object->Rotation(Quaternion::FromAxisAngle(Vector3::UnitZ, Math::ToRadians(90.0f)));
+	object->Scale(1.0f, 1.0f, 1.0f);
+	modelComp = object->CreateComponent<ModelComponent>();
+	modelComp->LoadCylinder(10.f, 40.0f, 32, 1);
+
+	material.baseColor = Vector4(0.55f, 0.56f, 1.00f, 1.0f); // 鉄のグレー
+	material.metallic = 0.5f;
+	material.roughness = 0.6f;
+	material.reflectance = 0.6f;
+	material.materialType = 0;
+	material.uvScale = Vector2(1.0f, 1.0f);
+	modelComp->SetMaterial(material);
+
 }
 
 void TestScene::InputScene(const class InputAction& input)

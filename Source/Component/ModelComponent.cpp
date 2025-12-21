@@ -159,6 +159,156 @@ void GenerateCubeMesh(float size, std::vector<Vertex>& outVertices, std::vector<
         Vector3( half, -half, -half), Vector3( half, -half,  half));
 }
 
+void GenerateCylinderMesh(float radius, float height, int slices, int stacks, std::vector<Vertex>& outVertices, std::vector<unsigned short>& outIndices) {
+    slices = Math::Max(3, slices);
+    stacks = Math::Max(1, stacks);
+
+    const float halfH = height * 0.5f;
+    const Vector4 color(1.0f, 1.0f, 1.0f, 1.0f);
+
+    outVertices.clear();
+    outIndices.clear();
+
+    // 頂点数の概算（側面 + 上下面）
+    const int sideCols = slices + 1;
+    const int sideRows = stacks + 1;
+    const size_t sideVertCount = static_cast<size_t>(sideCols) * static_cast<size_t>(sideRows);
+    const size_t capVertCount = static_cast<size_t>(1 + (slices + 1)); // center + ring
+    const size_t totalVertCount = sideVertCount + capVertCount + capVertCount;
+
+    const size_t maxIndexValue = (std::numeric_limits<unsigned short>::max)();
+    if (totalVertCount > maxIndexValue) {
+        SDL_Log("GenerateCylinderMesh: vertex count exceeds 16-bit index limit");
+        return;
+    }
+
+    outVertices.reserve(totalVertCount);
+    outIndices.reserve(static_cast<size_t>(stacks) * static_cast<size_t>(slices) * 6 + static_cast<size_t>(slices) * 6);
+
+    // 側面
+    for (int row = 0; row <= stacks; ++row) {
+        float v = static_cast<float>(row) / static_cast<float>(stacks);
+        float y = -halfH + height * v;
+
+        for (int slice = 0; slice <= slices; ++slice) {
+            float u = static_cast<float>(slice) / static_cast<float>(slices);
+            float theta = XM_2PI * u;
+            float sinT = sinf(theta);
+            float cosT = cosf(theta);
+
+            Vector3 normal(cosT, 0.0f, sinT);
+            Vector3 pos(radius * cosT, y, radius * sinT);
+
+            Vector3 tangent(-sinT, 0.0f, cosT);
+            float tangentLenSq = tangent.Dot(tangent);
+            if (tangentLenSq < 1e-6f) {
+                tangent = Vector3(1.0f, 0.0f, 0.0f);
+            }
+            tangent.Normalize();
+
+            Vertex vtx = {};
+            vtx.Position = pos;
+            vtx.Normal = normal;
+            vtx.Tangent = tangent;
+            vtx.UV = Vector2(u, 1.0f - v);
+            vtx.Color = color;
+            outVertices.push_back(vtx);
+        }
+    }
+
+    // 側面インデックス
+    for (int row = 0; row < stacks; ++row) {
+        for (int slice = 0; slice < slices; ++slice) {
+            unsigned short i0 = static_cast<unsigned short>(row * sideCols + slice);
+            unsigned short i1 = static_cast<unsigned short>(i0 + 1);
+            unsigned short i2 = static_cast<unsigned short>(i0 + sideCols);
+            unsigned short i3 = static_cast<unsigned short>(i2 + 1);
+
+            outIndices.push_back(i0);
+            outIndices.push_back(i2);
+            outIndices.push_back(i1);
+
+            outIndices.push_back(i1);
+            outIndices.push_back(i2);
+            outIndices.push_back(i3);
+        }
+    }
+
+    // 上面キャップ（+Y）
+    const unsigned short topBase = static_cast<unsigned short>(outVertices.size());
+    {
+        Vertex center = {};
+        center.Position = Vector3(0.0f, halfH, 0.0f);
+        center.Normal = Vector3(0.0f, 1.0f, 0.0f);
+        center.Tangent = Vector3(1.0f, 0.0f, 0.0f);
+        center.UV = Vector2(0.5f, 0.5f);
+        center.Color = color;
+        outVertices.push_back(center);
+
+        for (int slice = 0; slice <= slices; ++slice) {
+            float u = static_cast<float>(slice) / static_cast<float>(slices);
+            float theta = XM_2PI * u;
+            float sinT = sinf(theta);
+            float cosT = cosf(theta);
+
+            float x = radius * cosT;
+            float z = radius * sinT;
+
+            Vertex vtx = {};
+            vtx.Position = Vector3(x, halfH, z);
+            vtx.Normal = Vector3(0.0f, 1.0f, 0.0f);
+            vtx.Tangent = Vector3(1.0f, 0.0f, 0.0f);
+            vtx.UV = Vector2(0.5f + (x / (2.0f * radius)), 0.5f - (z / (2.0f * radius)));
+            vtx.Color = color;
+            outVertices.push_back(vtx);
+        }
+
+        for (int slice = 0; slice < slices; ++slice) {
+            // center, next, current（上から見てCCW）
+            outIndices.push_back(topBase + 0);
+            outIndices.push_back(topBase + 1 + static_cast<unsigned short>(slice + 1));
+            outIndices.push_back(topBase + 1 + static_cast<unsigned short>(slice));
+        }
+    }
+
+    // 下面キャップ（-Y）
+    const unsigned short bottomBase = static_cast<unsigned short>(outVertices.size());
+    {
+        Vertex center = {};
+        center.Position = Vector3(0.0f, -halfH, 0.0f);
+        center.Normal = Vector3(0.0f, -1.0f, 0.0f);
+        center.Tangent = Vector3(1.0f, 0.0f, 0.0f);
+        center.UV = Vector2(0.5f, 0.5f);
+        center.Color = color;
+        outVertices.push_back(center);
+
+        for (int slice = 0; slice <= slices; ++slice) {
+            float u = static_cast<float>(slice) / static_cast<float>(slices);
+            float theta = XM_2PI * u;
+            float sinT = sinf(theta);
+            float cosT = cosf(theta);
+
+            float x = radius * cosT;
+            float z = radius * sinT;
+
+            Vertex vtx = {};
+            vtx.Position = Vector3(x, -halfH, z);
+            vtx.Normal = Vector3(0.0f, -1.0f, 0.0f);
+            vtx.Tangent = Vector3(1.0f, 0.0f, 0.0f);
+            vtx.UV = Vector2(0.5f + (x / (2.0f * radius)), 0.5f + (z / (2.0f * radius)));
+            vtx.Color = color;
+            outVertices.push_back(vtx);
+        }
+
+        for (int slice = 0; slice < slices; ++slice) {
+            // center, current, next（下から見てCCW）
+            outIndices.push_back(bottomBase + 0);
+            outIndices.push_back(bottomBase + 1 + static_cast<unsigned short>(slice));
+            outIndices.push_back(bottomBase + 1 + static_cast<unsigned short>(slice + 1));
+        }
+    }
+}
+
 } // namespace
 
 ModelComponent::ModelComponent(class GameObject& parent, int updateLayer)
@@ -383,6 +533,68 @@ bool ModelComponent::LoadCube(float size) {
     return true;
 }
 
+bool ModelComponent::LoadCylinder(float radius, float height, int slices, int stacks) {
+    _modelType = ModelType::CYLINDER;
+
+    for (auto vb : _vertexBuffers) delete vb;
+    for (auto ib : _indexBuffers) delete ib;
+    for (auto tex : _textures) delete tex;
+    _vertexBuffers.clear();
+    _indexBuffers.clear();
+    _textures.clear();
+    _textureIndices.clear();
+    _meshes.clear();
+    _quadVertices.clear();
+    _quadIndices.clear();
+
+    std::vector<Vertex> vertices;
+    std::vector<unsigned short> indices;
+    GenerateCylinderMesh(radius, height, slices, stacks, vertices, indices);
+
+    if (vertices.empty() || indices.empty()) {
+        SDL_Log("ModelComponent: Failed to generate cylinder mesh");
+        return false;
+    }
+
+    Mesh mesh = {};
+    mesh.Vertices = std::move(vertices);
+    mesh.Indices = std::move(indices);
+    _meshes.push_back(std::move(mesh));
+
+    auto vb = new VertexBuffer(_meshes[0].Vertices.data(), _meshes[0].Vertices.size());
+    if (!vb->IsValid()) {
+        delete vb;
+        _meshes.clear();
+        return false;
+    }
+    _vertexBuffers.push_back(vb);
+
+    auto ib = new IndexBuffer(_meshes[0].Indices.data(), _meshes[0].Indices.size());
+    if (!ib->IsValid()) {
+        delete ib;
+        delete _vertexBuffers.back();
+        _vertexBuffers.clear();
+        _meshes.clear();
+        return false;
+    }
+    _indexBuffers.push_back(ib);
+
+    Texture2D* mainTex = nullptr;
+    if (_texture && _texture->IsValid()) {
+        mainTex = _texture;
+    } else {
+        mainTex = Texture2D::GetWhite();
+    }
+
+    if (mainTex) {
+        _textures.push_back(mainTex);
+        _textureIndices.push_back(mainTex->GetDescriptorIndex());
+    }
+
+    _needsRaytracingUpdate = true;
+    return true;
+}
+
 bool ModelComponent::LoadSphere(float radius, int slices, int stacks) {
     _modelType = ModelType::SPHERE;
 
@@ -549,7 +761,7 @@ void ModelComponent::UpdateRaytracingMesh() {
                 renderer.GetRaytracingManager()->SetMeshTexture(_raytracingMeshId, _texture);
             }
         }
-    } else if (_modelType == ModelType::MESH_FILE || _modelType == ModelType::SPHERE || _modelType == ModelType::CUBE) {
+    } else if (_modelType == ModelType::MESH_FILE || _modelType == ModelType::SPHERE || _modelType == ModelType::CUBE || _modelType == ModelType::CYLINDER) {
         // メッシュファイル/生成メッシュ用の処理（TODO: 複数メッシュ対応）
         // 現状は最初のメッシュのみ
         if (!_meshes.empty()) {
