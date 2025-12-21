@@ -30,13 +30,13 @@ RendererManager::~RendererManager(){
 
 bool RendererManager::Initialize() {
 	Direct3D::CreateInstance();
-	DIRECT3D.Width(1000);
-	DIRECT3D.Height(800);
+	DIRECT3D.Width(1280);
+	DIRECT3D.Height(720);
 	if (!DIRECT3D.Initialize()) {
 		return false;
 	}
 
-	DIRECT3D.SetProjectionMatrix(1000, 800, 0.1f, 100.0f);
+	DIRECT3D.SetProjectionMatrix(1280, 720, 0.1f, 100.0f);
 
 	DescriptorManager::CreateInstance();
 
