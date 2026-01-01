@@ -864,6 +864,9 @@ void ModelComponent::Render() {
     // 32bit定数としてセット（行列=16要素）
     commandList.SetGraphicsRoot32BitConstants(2, 16, &worldTransform, 0);
 
+    // マテリアル色（b2 RootConstants）
+    commandList.SetGraphicsRoot32BitConstants(3, 4, &_material.baseColor, 0);
+
     // シーン定数（b0のCBV）を毎ドロー前に再バインド（保守的）
     D3D12_GPU_DESCRIPTOR_HANDLE cbvHandle = DESCRIPTORMANAGER.GetGPUHandleAt(
         GAME.GetRendererManager().GetConstantBufferIndex()

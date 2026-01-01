@@ -5,7 +5,7 @@ RootSignature::RootSignature() {
 
 bool RootSignature::Initialize() {
     // ルートパラメータの配列を作成
-    D3D12_ROOT_PARAMETER rootParams[3] = {};
+    D3D12_ROOT_PARAMETER rootParams[4] = {};
 
     // パラメータ0: テクスチャ (t0)
     D3D12_DESCRIPTOR_RANGE descRange0 = {};
@@ -38,6 +38,14 @@ bool RootSignature::Initialize() {
     rootParams[2].Constants.ShaderRegister = 1; // b1 として扱う
     rootParams[2].Constants.RegisterSpace = 0;
     rootParams[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+
+    // パラメータ3: マテリアル色（ルート定数 b2）
+    // 32bit定数 4個 = 16byte (float4 baseColor)
+    rootParams[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+    rootParams[3].Constants.Num32BitValues = 4;
+    rootParams[3].Constants.ShaderRegister = 2; // b2
+    rootParams[3].Constants.RegisterSpace = 0;
+    rootParams[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
     
     // サンプラーの設定
     D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
@@ -51,7 +59,7 @@ bool RootSignature::Initialize() {
     
     // ルートシグネチャの設定
     D3D12_ROOT_SIGNATURE_DESC rootSigDesc = {};
-    rootSigDesc.NumParameters = 3; // 追加したワールド行列用ルート定数を含む
+    rootSigDesc.NumParameters = 4;
     rootSigDesc.pParameters = rootParams;
     rootSigDesc.NumStaticSamplers = 1;
     rootSigDesc.pStaticSamplers = &samplerDesc;

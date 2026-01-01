@@ -165,7 +165,7 @@ void RaytracingSampleScene::LoadObjects()
 	object->Scale(40.0f, 40.0f, 40.0f);
 	modelComp = object->CreateComponent<ModelComponent>();
 	modelComp->LoadSphere(1.0f, 32, 24);
-	modelComp->SetMaterial(MakeMaterial(Vector4(0.55f, 0.56f, 0.58f, 1.0f), 1.0f, 0.25f, 0.9f));
+	modelComp->SetMaterial(MakeMaterial(Vector4(0.55f, 0.56f, 0.58f, 1.0f), 0.8f, 0.3f, 0.9f));
 
 	// ラフ金属球
 	object = CreateGameObject<GameObject>();
@@ -204,7 +204,7 @@ void RaytracingSampleScene::LoadObjects()
 	object->Scale(70.0f, 70.0f, 70.0f);
 	modelComp = object->CreateComponent<ModelComponent>();
 	modelComp->LoadCube(1.0f);
-	modelComp->SetMaterial(MakeMaterial(Vector4(0.25f, 0.50f, 1.0f, 1.0f), 1.0f, 0.10f, 1.0f));
+	modelComp->SetMaterial(MakeMaterial(Vector4(1.0f, 0.843f, 0.0f, 1.0f), 1.0f, 0.20f, 0.6f));
 
 
 }

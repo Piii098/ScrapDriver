@@ -66,6 +66,53 @@ struct VertexAttributes
     float2 uv;
 };
 
+// ===== Roughness (glossy reflection) helpers =====
+#define PI 3.14159265f
+
+uint HashUint(uint x)
+{
+    x ^= x >> 16;
+    x *= 0x7feb352du;
+    x ^= x >> 15;
+    x *= 0x846ca68bu;
+    x ^= x >> 16;
+    return x;
+}
+
+float Rand01(inout uint seed)
+{
+    seed = HashUint(seed);
+    return (seed & 0x00FFFFFFu) / 16777216.0f;
+}
+
+void BuildBasis(float3 axis, out float3 tangent, out float3 bitangent)
+{
+    float3 up = (abs(axis.z) < 0.999f) ? float3(0.0f, 0.0f, 1.0f) : float3(0.0f, 1.0f, 0.0f);
+    tangent = normalize(cross(up, axis));
+    bitangent = cross(axis, tangent);
+}
+
+float3 SampleCone(float3 axis, float maxAngleRad, inout uint seed)
+{
+    if (maxAngleRad <= 1e-6f) {
+        return axis;
+    }
+
+    float3 t, b;
+    BuildBasis(axis, t, b);
+
+    float u1 = Rand01(seed);
+    float u2 = Rand01(seed);
+
+    float cosMin = cos(maxAngleRad);
+    float cosTheta = lerp(1.0f, cosMin, u1);
+    float sinTheta = sqrt(max(0.0f, 1.0f - cosTheta * cosTheta));
+    float phi = 2.0f * PI * u2;
+
+    float3 local = float3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
+    return normalize(local.x * t + local.y * b + local.z * axis);
+}
+
 [shader("raygeneration")]
 void MyRaygenShader()
 {
@@ -206,7 +253,17 @@ void MyClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersection
     float3 reflectColor = float3(0, 0, 0);
     if (reflectance > 0.001f && payload.depth < MAX_BOUNCES)
     {
-        float3 reflectDir = reflect(WorldRayDirection(), normal);
+        float3 reflectDir = normalize(reflect(WorldRayDirection(), normal));
+
+        // roughness で反射方向をブレさせて「鏡面すぎ」を抑える（簡易グロッシー反射）
+        // NOTE: サンプルは1本なので roughness が高いとノイズが出ます。
+        float coneAngle = (roughness * roughness) * 0.7f; // 最大 ~40deg
+        uint2 launchIndex = DispatchRaysIndex().xy;
+        uint seed = launchIndex.x * 1973u + launchIndex.y * 9277u;
+        seed ^= (payload.depth + 1u) * 26699u;
+        seed ^= instanceID * 3181u;
+        seed ^= primitiveIndex * 15731u;
+        reflectDir = SampleCone(reflectDir, coneAngle, seed);
 
         RayDesc reflectRay;
         reflectRay.Origin = hitPosition + normal * 0.001f;
