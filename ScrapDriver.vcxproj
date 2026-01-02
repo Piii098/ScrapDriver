@@ -194,6 +194,9 @@
     <ClCompile Include="Source\GameObject\CameraObject.cpp" />
     <ClCompile Include="Source\LevelLoader\LevelLoader.cpp" />
     <ClCompile Include="Source\DirectX\ConstantBuffer.cpp" />
+    <ClCompile Include="Source\DirectX\ShadowMap.cpp" />
+    <ClCompile Include="Source\DirectX\ShadowRootSignature.cpp" />
+    <ClCompile Include="Source\DirectX\ShadowPipelineState.cpp" />
     <ClCompile Include="Source\Core\Game.cpp" />
     <ClCompile Include="Source\DirectX\DescriptorHeap.cpp" />
     <ClCompile Include="Source\DirectX\Direct3D.cpp" />
@@ -236,6 +239,10 @@
     <ClInclude Include="Source\GameObject\CameraObject.h" />
     <ClInclude Include="Source\LevelLoader\LevelLoader.h" />
     <ClInclude Include="Source\DirectX\ConstantBuffer.h" />
+    <ClInclude Include="Source\DirectX\GenericConstantBuffer.h" />
+    <ClInclude Include="Source\DirectX\ShadowMap.h" />
+    <ClInclude Include="Source\DirectX\ShadowRootSignature.h" />
+    <ClInclude Include="Source\DirectX\ShadowPipelineState.h" />
     <ClInclude Include="Source\Core\Game.h" />
     <ClInclude Include="Source\DirectX\DescriptorHeap.h" />
     <ClInclude Include="Source\DirectX\DirectX.h" />
