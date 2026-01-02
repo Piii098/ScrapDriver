@@ -5,9 +5,20 @@ Texture2D<float> shadowMap : register(t1);
 SamplerState smp : register(s0);
 SamplerComparisonState shadowSampler : register(s1);
 
+// シーン共通（ビュー・プロジェクション）
+cbuffer SceneConstant : register(b0)
+{
+    matrix view;
+    matrix proj;
+};
+
 cbuffer MaterialConstant : register(b2)
 {
     float4 baseColor;
+    float metallic;
+    float roughness;
+    float reflectance;
+    float _pad0;
 };
 
 // Light data structure
@@ -71,6 +82,7 @@ float CalcShadowFactor(float4 lightSpacePos)
     shadow /= float(pcfSize * pcfSize);
     
     return shadow;
+
 }
 
 float4 PS(TestType input) : SV_TARGET

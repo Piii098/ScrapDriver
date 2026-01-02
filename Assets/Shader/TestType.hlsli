@@ -5,4 +5,5 @@ struct TestType
     float4 normal : NORMAL;
     float2 uv : TEXCOORD;
     float3 worldPos : WORLDPOS;
+
 };

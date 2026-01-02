@@ -29,7 +29,7 @@ bool RootSignature::Initialize() {
     rootParams[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
     rootParams[1].DescriptorTable.NumDescriptorRanges = 1;
     rootParams[1].DescriptorTable.pDescriptorRanges = &descRange1;
-    rootParams[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+    rootParams[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
     // パラメータ2: ワールド行列（ルート定数 b1）
     // 32bit定数 16個 = 64byte (matrix 4x4)
@@ -40,9 +40,9 @@ bool RootSignature::Initialize() {
     rootParams[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
     // パラメータ3: マテリアル色（ルート定数 b2）
-    // 32bit定数 4個 = 16byte (float4 baseColor)
+    // 32bit定数 8個 = 32byte (float4 baseColor + metallic/roughness/reflectance + pad)
     rootParams[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-    rootParams[3].Constants.Num32BitValues = 4;
+    rootParams[3].Constants.Num32BitValues = 8;
     rootParams[3].Constants.ShaderRegister = 2; // b2
     rootParams[3].Constants.RegisterSpace = 0;
     rootParams[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
