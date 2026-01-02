@@ -864,8 +864,25 @@ void ModelComponent::Render() {
     // 32bit定数としてセット（行列=16要素）
     commandList.SetGraphicsRoot32BitConstants(2, 16, &worldTransform, 0);
 
-    // マテリアル色（b2 RootConstants）
-    commandList.SetGraphicsRoot32BitConstants(3, 4, &_material.baseColor, 0);
+    // マテリアル（b2 RootConstants）: baseColor + metallic/roughness/reflectance
+    struct MaterialConstantsPS {
+        float baseColor[4];
+        float metallic;
+        float roughness;
+        float reflectance;
+        float pad0;
+    } mat = {};
+
+    mat.baseColor[0] = _material.baseColor.x;
+    mat.baseColor[1] = _material.baseColor.y;
+    mat.baseColor[2] = _material.baseColor.z;
+    mat.baseColor[3] = _material.baseColor.w;
+    mat.metallic = _material.metallic;
+    mat.roughness = _material.roughness;
+    mat.reflectance = _material.reflectance;
+    mat.pad0 = 0.0f;
+
+    commandList.SetGraphicsRoot32BitConstants(3, 8, &mat, 0);
 
     // シーン定数（b0のCBV）を毎ドロー前に再バインド（保守的）
     D3D12_GPU_DESCRIPTOR_HANDLE cbvHandle = DESCRIPTORMANAGER.GetGPUHandleAt(
