@@ -40,6 +40,15 @@
     <ClCompile Include="Source\DirectX\ConstantBuffer.cpp">
       <Filter>Renderer\DirectX</Filter>
     </ClCompile>
+    <ClCompile Include="Source\DirectX\ShadowMap.cpp">
+      <Filter>Renderer\DirectX</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DirectX\ShadowRootSignature.cpp">
+      <Filter>Renderer\DirectX</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DirectX\ShadowPipelineState.cpp">
+      <Filter>Renderer\DirectX</Filter>
+    </ClCompile>
     <ClCompile Include="Source\DirectX\DescriptorHeap.cpp">
       <Filter>Renderer\DirectX</Filter>
     </ClCompile>
@@ -138,6 +147,18 @@
       <Filter>Renderer\DirectX</Filter>
     </ClInclude>
     <ClInclude Include="Source\DirectX\ConstantBuffer.h">
+      <Filter>Renderer\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\DirectX\GenericConstantBuffer.h">
+      <Filter>Renderer\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\DirectX\ShadowMap.h">
+      <Filter>Renderer\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\DirectX\ShadowRootSignature.h">
+      <Filter>Renderer\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\DirectX\ShadowPipelineState.h">
       <Filter>Renderer\DirectX</Filter>
     </ClInclude>
     <ClInclude Include="Source\DirectX\DescriptorHeap.h">

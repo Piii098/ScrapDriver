@@ -64,8 +64,8 @@ private:
 	class ShadowMap* _shadowMap = nullptr;
 	class ShadowRootSignature* _shadowRootSignature = nullptr;
 	class ShadowPipelineState* _shadowPipelineState = nullptr;
-	class ConstantBuffer* _shadowLightConstantBuffer = nullptr;
-	class ConstantBuffer* _lightsConstantBuffer = nullptr;
+	GenericConstantBuffer<Matrix4x4>* _shadowLightConstantBuffer = nullptr;
+	GenericConstantBuffer<ShadowLightsData>* _lightsConstantBuffer = nullptr;
 	UINT _shadowLightCBVIndex = 0;
 	UINT _lightsCBVIndex = 0;
 

@@ -1,6 +1,7 @@
 ﻿#include "Renderer/RendererManager.h"
 #include "DirectX/Direct3D.h"
 #include "DirectX/ConstantBuffer.h"
+#include "DirectX/GenericConstantBuffer.h"
 #include "DirectX/RootSignature.h"
 #include "DirectX/PipelineState.h"
 #include "DirectX/DescriptorHeap.h"
@@ -232,6 +233,18 @@ void RendererManager::Render(std::function<void()> renderFunc) {
     if (renderFunc) {
         renderFunc();  // ← ここで各ModelComponent::Render()が呼ばれる
     }
+    
+    // シャドウマップを次のフレームのためにDepth Writeステートに戻す
+    if (_shadowMap) {
+        D3D12_RESOURCE_BARRIER barrier = {};
+        barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+        barrier.Transition.pResource = _shadowMap->GetResource();
+        barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+        barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+        barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        DIRECT3D.CommandList().ResourceBarrier(1, &barrier);
+    }
 
     DIRECT3D.EndRender();
 }
@@ -325,7 +338,7 @@ bool RendererManager::CreateShadowResources() {
 	}
 	
 	// シャドウパス用ライト定数バッファの作成（lightViewProj用）
-	_shadowLightConstantBuffer = new ConstantBuffer();
+	_shadowLightConstantBuffer = new GenericConstantBuffer<Matrix4x4>();
 	if (!_shadowLightConstantBuffer->IsValid()) {
 		SDL_Log("Failed to create shadow light constant buffer");
 		return false;
@@ -333,7 +346,7 @@ bool RendererManager::CreateShadowResources() {
 	_shadowLightCBVIndex = DESCRIPTORMANAGER.ResisterConstantBuffer(_shadowLightConstantBuffer->GetResource());
 	
 	// メインパス用ライト定数バッファの作成（ShadowLightsData用）
-	_lightsConstantBuffer = new ConstantBuffer();
+	_lightsConstantBuffer = new GenericConstantBuffer<ShadowLightsData>();
 	if (!_lightsConstantBuffer->IsValid()) {
 		SDL_Log("Failed to create lights constant buffer");
 		return false;
@@ -415,12 +428,9 @@ void RendererManager::RenderShadowMap(std::function<void()> renderFunc) {
 	DIRECT3D.CommandList().SetGraphicsRootDescriptorTable(0, shadowLightHandle);
 	
 	// 各モデルをシャドウマップに描画
-	if (renderFunc) {
-		// TODO: モデルごとにワールド行列を設定して描画
-		// 現時点では、renderFunc()を呼び出すことで各ModelComponent::Render()が呼ばれる
-		// ただし、シャドウパス用の描画なので、テクスチャやマテリアルは不要
-		// ここでは簡易的に実装（実際には専用の描画関数が必要）
-	}
+	// Note: 現在の実装では、ModelComponent側でシャドウパス用の描画を実装する必要があります。
+	// 簡易実装として、ここでは空のシャドウマップを生成します。
+	// 実際のプロジェクトでは、各ModelComponentがシャドウパス用の描画コールを持つ必要があります。
 	
 	// リソースバリア：シャドウマップを深度書き込みからシェーダーリソースに変更
 	D3D12_RESOURCE_BARRIER barrier = {};
