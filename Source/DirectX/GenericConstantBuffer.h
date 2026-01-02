@@ -1,5 +1,7 @@
 #pragma once
 #include "DirectX.h"
+#include "DirectX/Direct3D.h"
+#include <SDL3/SDL.h>
 
 // Generic constant buffer template
 template<typename T>

@@ -68,6 +68,9 @@ private:
 	GenericConstantBuffer<ShadowLightsData>* _lightsConstantBuffer = nullptr;
 	UINT _shadowLightCBVIndex = 0;
 	UINT _lightsCBVIndex = 0;
+	
+	// Shadow map constants
+	static constexpr UINT SHADOW_MAP_SIZE = 2048;
 
 	// レイトレーシング関連
 	std::unique_ptr<RaytracingManager> _raytracingManager;

@@ -53,7 +53,8 @@ float CalcShadowFactor(float4 lightSpacePos)
     
     // PCF (Percentage Closer Filtering) for soft shadows
     float shadow = 0.0f;
-    float2 texelSize = 1.0f / float2(2048.0f, 2048.0f); // Shadow map size
+    // TODO: Pass shadow map size as constant instead of hardcoding
+    float2 texelSize = 1.0f / float2(2048.0f, 2048.0f); // Shadow map size (matches SHADOW_MAP_SIZE in RendererManager.h)
     
     const int pcfRadius = 1;
     for (int x = -pcfRadius; x <= pcfRadius; ++x)

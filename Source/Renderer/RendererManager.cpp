@@ -314,9 +314,9 @@ bool RendererManager::CreatePipelineState() {
 }
 
 bool RendererManager::CreateShadowResources() {
-	// シャドウマップの作成（2048x2048）
+	// シャドウマップの作成
 	_shadowMap = new ShadowMap();
-	if (!_shadowMap->Initialize(2048, 2048)) {
+	if (!_shadowMap->Initialize(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE)) {
 		SDL_Log("Failed to create shadow map");
 		delete _shadowMap;
 		_shadowMap = nullptr;
