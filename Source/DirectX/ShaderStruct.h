@@ -83,3 +83,11 @@ struct LightsData {
 	float _padding[3];
 	LightData lights[8];        // 最大8ライト
 };
+
+// シャドウマップ用のライト定数バッファ（シェーダー側と一致させる）
+struct ShadowLightsData {
+	unsigned int lightCount;
+	float _padding0[3];
+	LightData lights[8];
+	Matrix4x4 lightViewProj;    // ライト空間のビュー・プロジェクション行列
+};

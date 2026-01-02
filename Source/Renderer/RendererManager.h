@@ -43,6 +43,9 @@ public:
 	void SetWorldMatrix(const Matrix4x4& world);
 
 	UINT GetConstantBufferIndex() const { return _cbvIndex; }
+	
+	// シャドウマップ取得
+	class ShadowMap* GetShadowMap() { return _shadowMap; }
 
 	// カメラはCameraComponent::GetActiveCamera()から自動取得
 
@@ -56,6 +59,15 @@ private:
 	class ConstantBuffer* _constantBuffer; 
 	class RootSignature* _rootSignature;
 	class PipelineState* _pipelineState;
+	
+	// シャドウマップ関連
+	class ShadowMap* _shadowMap = nullptr;
+	class ShadowRootSignature* _shadowRootSignature = nullptr;
+	class ShadowPipelineState* _shadowPipelineState = nullptr;
+	class ConstantBuffer* _shadowLightConstantBuffer = nullptr;
+	class ConstantBuffer* _lightsConstantBuffer = nullptr;
+	UINT _shadowLightCBVIndex = 0;
+	UINT _lightsCBVIndex = 0;
 
 	// レイトレーシング関連
 	std::unique_ptr<RaytracingManager> _raytracingManager;
@@ -74,4 +86,6 @@ private:
 	bool CreateRenderingResources();
 	bool CreateRootSignature();
 	bool CreatePipelineState();
+	bool CreateShadowResources();
+	void RenderShadowMap(std::function<void()> renderFunc);
 };

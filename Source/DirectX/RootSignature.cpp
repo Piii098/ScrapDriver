@@ -5,7 +5,7 @@ RootSignature::RootSignature() {
 
 bool RootSignature::Initialize() {
     // ルートパラメータの配列を作成
-    D3D12_ROOT_PARAMETER rootParams[4] = {};
+    D3D12_ROOT_PARAMETER rootParams[6] = {};
 
     // パラメータ0: テクスチャ (t0)
     D3D12_DESCRIPTOR_RANGE descRange0 = {};
@@ -46,23 +46,60 @@ bool RootSignature::Initialize() {
     rootParams[3].Constants.ShaderRegister = 2; // b2
     rootParams[3].Constants.RegisterSpace = 0;
     rootParams[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+    // パラメータ4: シャドウマップ (t1)
+    D3D12_DESCRIPTOR_RANGE descRange4 = {};
+    descRange4.NumDescriptors = 1;
+    descRange4.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+    descRange4.BaseShaderRegister = 1; // t1
+    descRange4.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+    rootParams[4].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+    rootParams[4].DescriptorTable.NumDescriptorRanges = 1;
+    rootParams[4].DescriptorTable.pDescriptorRanges = &descRange4;
+    rootParams[4].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+    // パラメータ5: ライト定数バッファ (b3)
+    D3D12_DESCRIPTOR_RANGE descRange5 = {};
+    descRange5.NumDescriptors = 1;
+    descRange5.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+    descRange5.BaseShaderRegister = 3; // b3
+    descRange5.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+    rootParams[5].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+    rootParams[5].DescriptorTable.NumDescriptorRanges = 1;
+    rootParams[5].DescriptorTable.pDescriptorRanges = &descRange5;
+    rootParams[5].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
     
     // サンプラーの設定
-    D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
-    samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-    samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    samplerDesc.ShaderRegister = 0; // s0
-    samplerDesc.RegisterSpace = 0;
-    samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+    D3D12_STATIC_SAMPLER_DESC samplers[2] = {};
+    
+    // s0: 通常のサンプラー
+    samplers[0].Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+    samplers[0].AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    samplers[0].AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    samplers[0].AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    samplers[0].ShaderRegister = 0; // s0
+    samplers[0].RegisterSpace = 0;
+    samplers[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+    
+    // s1: シャドウマップ用比較サンプラー
+    samplers[1].Filter = D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+    samplers[1].AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+    samplers[1].AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+    samplers[1].AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+    samplers[1].ComparisonFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+    samplers[1].BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE;
+    samplers[1].ShaderRegister = 1; // s1
+    samplers[1].RegisterSpace = 0;
+    samplers[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
     
     // ルートシグネチャの設定
     D3D12_ROOT_SIGNATURE_DESC rootSigDesc = {};
-    rootSigDesc.NumParameters = 4;
+    rootSigDesc.NumParameters = 6;
     rootSigDesc.pParameters = rootParams;
-    rootSigDesc.NumStaticSamplers = 1;
-    rootSigDesc.pStaticSamplers = &samplerDesc;
+    rootSigDesc.NumStaticSamplers = 2;
+    rootSigDesc.pStaticSamplers = samplers;
     rootSigDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
     
     ComPtr<ID3DBlob> rootSigBlob;
