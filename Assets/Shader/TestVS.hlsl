@@ -18,7 +18,9 @@ TestType VS(float4 pos : POSITION, float2 uv : TEXCOORD, float4 normal : NORMAL)
 {
     TestType output;
     output.uv = uv;
-    output.svpos = mul(mul(mul(proj, view), world), pos);
+    float4 worldPos = mul(world, pos);
+    output.worldPos = worldPos.xyz;
+    output.svpos = mul(mul(proj, view), worldPos);
     normal.w = 0;
     output.normal = mul(world, normal);
     return output;
