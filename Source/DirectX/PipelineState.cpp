@@ -121,7 +121,7 @@ void PipelineState::Create()
 	auto hr = DIRECT3D.Device().CreateGraphicsPipelineState(&_desc, IID_PPV_ARGS(&_pipelineState));
 	if (FAILED(hr))
 	{
-		printf("パイプラインステートの生成に失敗");
+		printf("パイプラインステートの生成に失敗 hr=0x%08X\n", static_cast<unsigned>(hr));
 		return;
 	}
 

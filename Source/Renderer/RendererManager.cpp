@@ -387,7 +387,9 @@ void RendererManager::RenderShadowMap(std::function<void()> renderFunc) {
 		// 簡単のため、1つのディレクショナルライトを設定
 		lightsMapPtr->lightCount = 1;
 		lightsMapPtr->lights[0].type = 0; // Directional
-		lightsMapPtr->lights[0].direction = Vector3(lightPos - lightTarget).Normalize();
+		Vector3 lightDir(lightPos - lightTarget);
+		lightDir.Normalize();
+		lightsMapPtr->lights[0].direction = lightDir;
 		lightsMapPtr->lights[0].color = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 		lightsMapPtr->lights[0].intensity = 1.0f;
 		lightsMapPtr->lightViewProj = lightViewProj;
@@ -414,7 +416,8 @@ void RendererManager::RenderShadowMap(std::function<void()> renderFunc) {
 	DIRECT3D.CommandList().RSSetScissorRects(1, &scissorRect);
 	
 	// レンダーターゲットなし、深度バッファのみ
-	DIRECT3D.CommandList().OMSetRenderTargets(0, nullptr, FALSE, &_shadowMap->GetDSV());
+	D3D12_CPU_DESCRIPTOR_HANDLE shadowDsv = _shadowMap->GetDSV();
+	DIRECT3D.CommandList().OMSetRenderTargets(0, nullptr, FALSE, &shadowDsv);
 	
 	// シャドウパス用パイプラインをセット
 	DIRECT3D.CommandList().SetPipelineState(_shadowPipelineState->Get());

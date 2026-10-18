@@ -2,6 +2,7 @@
 #include <SDL3/SDL.h>
 #include "DirectX/DirectX.h"
 #include "DirectX/ShaderStruct.h"
+#include "DirectX/GenericConstantBuffer.h"
 #include <Windows.h>
 #include <vector>
 #include <functional>
