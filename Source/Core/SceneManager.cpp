@@ -22,7 +22,7 @@ SceneManager::~SceneManager() {
 
 bool SceneManager::Initialize() {
 
-	RaytracingSampleScene* scene = new RaytracingSampleScene();
+    TestScene* scene = new TestScene();
 
 	AddScene("Main", std::shared_ptr<Scene>(scene));
     if(ChangeScene("Main")){

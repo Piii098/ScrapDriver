@@ -1,6 +1,8 @@
 #pragma once
 #include "Core/Scene.h"
 
+#include <vector>
+
 class RaytracingSampleScene : public Scene {
 public:
 	RaytracingSampleScene();
@@ -14,4 +16,12 @@ private:
 	void LoadObjects() override;
 
 	class CameraObject* _camera;
+
+	// カメラ巡回（ウェイポイント）
+	bool _cameraTourEnabled = true;
+	std::vector<Vector3> _cameraTourPoints;
+	Vector3 _cameraTourLookAt = Vector3(0.0f, 60.0f, 50.0f);
+	float _cameraTourSegmentDurationSec = 4.0f;
+	float _cameraTourSegmentTimeSec = 0.0f;
+	int _cameraTourIndex = 0;
 };
