@@ -64,7 +64,7 @@ void TestScene::LoadObjects()
 
 	modelComp = object->CreateComponent<ModelComponent>();
 	modelComp->LoadQuad();
-	//modelComp->SetTexture("Assets/texture.jpg");
+	//modelComp->SetTexture("Assets/Texture/Concrete034_Color.jpg");
 
 	material.baseColor = Vector4(0.4f, 0.4f, 0.8f, 1.0f);
 	material.metallic = 0.0f;
@@ -81,7 +81,7 @@ void TestScene::LoadObjects()
     object->Scale(10.0f, 10.0f, 10.0f);
     modelComp = object->CreateComponent<ModelComponent>();
     modelComp->LoadSphere(1.0f, 24, 16);
-    //modelComp->SetTexture("Assets/texture.jpg");
+    //modelComp->SetTexture("Assets/Texture/Concrete034_Color.jpg");
 
     // 鉄っぽい見た目（高メタル・中程度の粗さ・強い反射）
 	material.baseColor = Vector4(0.55f, 0.56f, 0.58f, 1.0f); // 鉄のグレー

@@ -31,13 +31,13 @@ PlaneComponent::PlaneComponent(class GameObject& parent, int updateLayer)
 
 
 	_texture2D = new Texture2D();
-	_texture2D->Load("Assets/texture.jpg");
+	_texture2D->Load("Assets/Texture/Concrete034_Color.jpg");
 
 	//TexMetadata metadata = {};
 	//ScratchImage scratchImg = {};
 
 	//LoadFromWICFile(
-	//	L"Assets/texture.jpg",
+	//	L"Assets/Texture/Concrete034_Color.jpg",
 	//	WIC_FLAGS_NONE,
 	//	&metadata,
 	//	scratchImg
