@@ -20,31 +20,31 @@ RaytracingManager::~RaytracingManager() {
 }
 
 bool RaytracingManager::Initialize() {
-    // DXR�������`�F�b�N
+    // DXR初期化チェック
     /*if (!DIRECT3D.DXRDevice() || !DIRECT3D.DXRCommandList()) {
         SDL_Log("DXR not initialized");
         return false;
     }*/
 
-    // ���[�g�V�O�l�`���쐬
+    // ルートシグネチャ作成
     if (!CreateRootSignatures()) {
         SDL_Log("Failed to create root signatures");
         return false;
     }
 
-    // �p�C�v���C���쐬
+    // パイプライン作成
     if (!CreatePipeline()) {
         SDL_Log("Failed to create pipeline");
         return false;
     }
 
-    // �V�F�[�_�[�e�[�u���쐬
+    // シェーダーテーブル作成
     if (!CreateShaderTable()) {
         SDL_Log("Failed to create shader table");
         return false;
     }
 
-    // �o�̓��\�[�X�쐬
+    // 出力リソース作成
     if (!CreateOutput()) {
         SDL_Log("Failed to create output");
         return false;

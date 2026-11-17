@@ -3,7 +3,7 @@
 #include "Core/Component.h"
 #include "Framework.h"
 
-// ƒŒƒ“ƒ_[‹@”\‚ğ‚·‚½‚ß‚ÌƒRƒ“ƒ|[ƒlƒ“ƒg
+// ãƒ¬ãƒ³ãƒ€ãƒ¼æ©Ÿèƒ½ã‚’è©¦ã™ãŸã‚ã®ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
 class TestComponent1 : public Component {
 public:
 	TestComponent1(class GameObject& parent, int updateLayer = 100);
@@ -19,7 +19,7 @@ private:
 	D3D12_INDEX_BUFFER_VIEW _ibView;
 };
 
-// ƒŒƒCƒgƒŒ[ƒVƒ“ƒO‹@”\‚ğ‚·‚½‚ß‚ÌƒRƒ“ƒ|[ƒlƒ“ƒg
+// ãƒ¬ã‚¤ãƒˆãƒ¬ãƒ¼ã‚·ãƒ³ã‚°æ©Ÿèƒ½ã‚’è©¦ã™ãŸã‚ã®ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
 class TestComponent2 : public Component {
 public:
 	TestComponent2(GameObject& parent);

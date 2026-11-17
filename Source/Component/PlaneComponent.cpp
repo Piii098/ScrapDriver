@@ -8,16 +8,16 @@ PlaneComponent::PlaneComponent(class GameObject& parent, int updateLayer)
 	: Component(parent, updateLayer) {
 
 	Vertex vertices[4];
-	vertices[0].Position = { -1.f,-1.f,0.0f }; vertices[0].UV = { 0.0f,1.0f };//¶‰º
-	vertices[1].Position = { -1.f, 1.f,0.0f }; vertices[1].UV = { 0.0f,0.0f };//¶ã
-	vertices[2].Position = { 1.f,-1.f,0.0f }; vertices[2].UV = { 1.0f,1.0f };//‰E‰º
-	vertices[3].Position = { 1.f, 1.f,0.0f }; vertices[3].UV = { 1.0f,0.0f };//‰Eã
+	vertices[0].Position = { -1.f,-1.f,0.0f }; vertices[0].UV = { 0.0f,1.0f };//å·¦ä¸‹
+	vertices[1].Position = { -1.f, 1.f,0.0f }; vertices[1].UV = { 0.0f,0.0f };//å·¦ä¸Š
+	vertices[2].Position = { 1.f,-1.f,0.0f }; vertices[2].UV = { 1.0f,1.0f };//å³ä¸‹
+	vertices[3].Position = { 1.f, 1.f,0.0f }; vertices[3].UV = { 1.0f,0.0f };//å³ä¸Š
 
 	//	= {
-	//	{{-1.f,-1.f,0.0f},{0.0f,1.0f} },//¶‰º
-	//	{{-1.f,1.f,0.0f} ,{0.0f,0.0f}},//¶ã
-	//	{{1.f,-1.f,0.0f} ,{1.0f,1.0f}},//‰E‰º
-	//	{{1.f,1.f,0.0f} ,{1.0f,0.0f}},//‰Eã
+	//	{{-1.f,-1.f,0.0f},{0.0f,1.0f} },//å·¦ä¸‹
+	//	{{-1.f,1.f,0.0f} ,{0.0f,0.0f}},//å·¦ä¸Š
+	//	{{1.f,-1.f,0.0f} ,{1.0f,1.0f}},//å³ä¸‹
+	//	{{1.f,1.f,0.0f} ,{1.0f,0.0f}},//å³ä¸Š
 	//};
 	
 	_vertexBuffer = new VertexBuffer(vertices, _countof(vertices));
@@ -54,16 +54,16 @@ PlaneComponent::PlaneComponent(class GameObject& parent, int updateLayer)
 	//heapprop.VisibleNodeMask = 0;
 
 	//D3D12_RESOURCE_DESC desc = {};
-	//desc.Format = metadata.format;//RGBAƒtƒH[ƒ}ƒbƒg
+	//desc.Format = metadata.format;//RGBAãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆ
 	//desc.Width = metadata.width;
 	//desc.Height = metadata.height;
 	//desc.DepthOrArraySize = metadata.arraySize;
-	//desc.SampleDesc.Count = 1;//’ÊíƒeƒNƒXƒ`ƒƒ‚È‚Ì‚ÅƒAƒ“ƒ`ƒFƒŠ‚µ‚È‚¢
+	//desc.SampleDesc.Count = 1;//é€šå¸¸ãƒ†ã‚¯ã‚¹ãƒãƒ£ãªã®ã§ã‚¢ãƒ³ãƒã‚§ãƒªã—ãªã„
 	//desc.SampleDesc.Quality = 0;//
 	//desc.MipLevels = metadata.mipLevels;
 	//desc.Dimension = static_cast<D3D12_RESOURCE_DIMENSION>(metadata.dimension);
-	//desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;//ƒŒƒCƒAƒEƒg‚É‚Â‚¢‚Ä‚ÍŒˆ’è‚µ‚È‚¢
-	//desc.Flags = D3D12_RESOURCE_FLAG_NONE;//‚Æ‚­‚Éƒtƒ‰ƒO‚È‚µ
+	//desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;//ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆã«ã¤ã„ã¦ã¯æ±ºå®šã—ãªã„
+	//desc.Flags = D3D12_RESOURCE_FLAG_NONE;//ã¨ãã«ãƒ•ãƒ©ã‚°ãªã—
 
 	//DIRECT3D.Device().CreateCommittedResource(
 	//	&heapprop,
@@ -85,7 +85,7 @@ PlaneComponent::PlaneComponent(class GameObject& parent, int updateLayer)
 
 	//_texture->WriteToSubresource(
 	//	0,
-	//	nullptr, // ‘S—Ìˆæ
+	//	nullptr, // å…¨é ˜åŸŸ
 	//	img->pixels,
 	//	img->rowPitch,
 	//	img->slicePitch
@@ -96,7 +96,7 @@ PlaneComponent::PlaneComponent(class GameObject& parent, int updateLayer)
 	//heapDesc.NodeMask = 0;
 	//heapDesc.NumDescriptors = 1;
 	//heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	//// ƒfƒXƒNƒŠƒvƒ^ƒq[ƒv‚Ìì¬‚ÉƒGƒ‰[ƒ`ƒFƒbƒN‚ğ’Ç‰Á
+	//// ãƒ‡ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ’ãƒ¼ãƒ—ã®ä½œæˆã«ã‚¨ãƒ©ãƒ¼ãƒã‚§ãƒƒã‚¯ã‚’è¿½åŠ 
 	//auto hr = DIRECT3D.Device().CreateDescriptorHeap(
 	//	&heapDesc,
 	//	IID_PPV_ARGS(&_texDescHeap)
@@ -104,7 +104,7 @@ PlaneComponent::PlaneComponent(class GameObject& parent, int updateLayer)
 
 	//if (FAILED(hr)) {
 	//	printf("Error: Failed to create descriptor heap. HRESULT = 0x%08X\n", hr);
-	//	return; // ƒRƒ“ƒXƒgƒ‰ƒNƒ^‚È‚Ì‚Åreturn‚Åˆ—‚ğ~‚ß‚é
+	//	return; // ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ãªã®ã§returnã§å‡¦ç†ã‚’æ­¢ã‚ã‚‹
 	//}
 
 	//if (!_texDescHeap) {

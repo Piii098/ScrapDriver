@@ -8,7 +8,7 @@ bool RaytracingOutput::Initialize(UINT width, UINT height) {
     _width = width;
     _height = height;
 
-    // UAV���\�[�X�쐬
+    // UAVリソース作成
     auto defaultHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
     auto resourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(
         DXGI_FORMAT_R8G8B8A8_UNORM,
@@ -30,7 +30,7 @@ bool RaytracingOutput::Initialize(UINT width, UINT height) {
         return false;
     }
 
-    // UAV���f�B�X�N���v�^�q�[�v�ɓo�^
+    // UAVをディスクリプタヒープに登録
     D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
     uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
 
@@ -52,24 +52,24 @@ bool RaytracingOutput::Initialize(UINT width, UINT height) {
 void RaytracingOutput::CopyToBackBuffer(ID3D12Resource* backBuffer) {
     auto& commandList = DIRECT3D.CommandList();
 
-    // ���\�[�X�o���A: UAV -> COPY_SOURCE
+    // リソースバリア: UAV -> COPY_SOURCE
     auto barrier1 = CD3DX12_RESOURCE_BARRIER::Transition(
         _outputResource.Get(),
         D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
         D3D12_RESOURCE_STATE_COPY_SOURCE);
     commandList.ResourceBarrier(1, &barrier1);
 
-    // �o�b�N�o�b�t�@: RENDER_TARGET -> COPY_DEST
+    // バックバッファ: RENDER_TARGET -> COPY_DEST
     auto barrier2 = CD3DX12_RESOURCE_BARRIER::Transition(
         backBuffer,
         D3D12_RESOURCE_STATE_RENDER_TARGET,
         D3D12_RESOURCE_STATE_COPY_DEST);
     commandList.ResourceBarrier(1, &barrier2);
 
-    // �R�s�[
+    // コピー
     commandList.CopyResource(backBuffer, _outputResource.Get());
 
-    // �o���A��߂�
+    // バリアを戻す
     auto barrier3 = CD3DX12_RESOURCE_BARRIER::Transition(
         _outputResource.Get(),
         D3D12_RESOURCE_STATE_COPY_SOURCE,

@@ -1,38 +1,38 @@
 
 cbuffer Transform : register(b0)
 {
-    float4x4 World; // ƒ[ƒ‹ƒhs—ñ
-    float4x4 View; // ƒrƒ…[s—ñ
-    float4x4 Proj; // “Š‰es—ñ
+    float4x4 World; // ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—
+    float4x4 View; // ãƒ“ãƒ¥ãƒ¼è¡Œåˆ—
+    float4x4 Proj; // æŠ•å½±è¡Œåˆ—
 }
 
 struct VSInput
 {
-    float3 pos : POSITION; // ’¸“_À•W
-    float3 normal : NORMAL; // –@ü
+    float3 pos : POSITION; // é ‚ç‚¹åº§æ¨™
+    float3 normal : NORMAL; // æ³•ç·š
     float2 uv : TEXCOORD; // UV
-    float3 tangent : TANGENT; // Ú‹óŠÔ
-    float4 color : COLOR; // ’¸“_F
+    float3 tangent : TANGENT; // æ¥ç©ºé–“
+    float4 color : COLOR; // é ‚ç‚¹è‰²
 };
 
 struct VSOutput
 {
-    float4 svpos : SV_POSITION; // •ÏŠ·‚³‚ê‚½À•W
-    float4 color : COLOR; // •ÏŠ·‚³‚ê‚½F
+    float4 svpos : SV_POSITION; // å¤‰æ›ã•ã‚ŒãŸåº§æ¨™
+    float4 color : COLOR; // å¤‰æ›ã•ã‚ŒãŸè‰²
     float2 uv : TEXCOORD; // UV
 };
 
 VSOutput VS(VSInput input)
 {
-    VSOutput output = (VSOutput) 0; // ƒAƒEƒgƒvƒbƒg\‘¢‘Ì‚ğ’è‹`‚·‚é
+    VSOutput output = (VSOutput) 0; // ã‚¢ã‚¦ãƒˆãƒ—ãƒƒãƒˆæ§‹é€ ä½“ã‚’å®šç¾©ã™ã‚‹
 
-    float4 localPos = float4(input.pos, 1.0f); // ’¸“_À•W
-    float4 worldPos = mul(World, localPos); // ƒ[ƒ‹ƒhÀ•W‚É•ÏŠ·
-    float4 viewPos = mul(View, worldPos); // ƒrƒ…[À•W‚É•ÏŠ·
-    float4 projPos = mul(Proj, viewPos); // “Š‰e•ÏŠ·
+    float4 localPos = float4(input.pos, 1.0f); // é ‚ç‚¹åº§æ¨™
+    float4 worldPos = mul(World, localPos); // ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã«å¤‰æ›
+    float4 viewPos = mul(View, worldPos); // ãƒ“ãƒ¥ãƒ¼åº§æ¨™ã«å¤‰æ›
+    float4 projPos = mul(Proj, viewPos); // æŠ•å½±å¤‰æ›
 
-    output.svpos = projPos; // “Š‰e•ÏŠ·‚³‚ê‚½À•W‚ğƒsƒNƒZƒ‹ƒVƒF[ƒ_[‚É“n‚·
-    output.color = input.color; // ’¸“_F‚ğ‚»‚Ì‚Ü‚ÜƒsƒNƒZƒ‹ƒVƒF[ƒ_[‚É“n‚·
-    output.uv = input.uv; // UV‚ğ‚»‚Ì‚Ü‚ÜƒsƒNƒZƒ‹ƒVƒF[ƒ_[‚É“n‚·
+    output.svpos = projPos; // æŠ•å½±å¤‰æ›ã•ã‚ŒãŸåº§æ¨™ã‚’ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«æ¸¡ã™
+    output.color = input.color; // é ‚ç‚¹è‰²ã‚’ãã®ã¾ã¾ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«æ¸¡ã™
+    output.uv = input.uv; // UVã‚’ãã®ã¾ã¾ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«æ¸¡ã™
     return output;
 }

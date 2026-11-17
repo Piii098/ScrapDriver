@@ -25,14 +25,14 @@ bool TestScene::Initialize(const std::string& name)
 {
 	_name = name;
 	SDL_Log("TestScene Initialize : %s", _name.c_str());
-	LoadData();    // �f�[�^�̓ǂݍ���
-	LoadObjects(); // �I�u�W�F�N�g�̓ǂݍ���
+	LoadData();    // データの読み込み
+	LoadObjects(); // オブジェクトの読み込み
 	return true;
 }
 
 void TestScene::LoadData()
 {
-	// �����ɃV�[���ŗL�̃f�[�^�ǂݍ��ݏ���������
+	// ここにシーン固有のデータ読み込み処理を書く
 	SDL_Log("TestScene LoadData called");
 }
 

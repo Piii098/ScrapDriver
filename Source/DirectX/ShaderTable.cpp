@@ -8,18 +8,18 @@ bool ShaderTable::CreateShaderTable(
     const WCHAR* exportName,
     ID3D12Resource** buffer) {
 
-    // �V�F�[�_�[���ʎq���擾
+    // シェーダー識別子を取得
     void* shaderId = props->GetShaderIdentifier(exportName);
     if (!shaderId) {
         SDL_Log("Failed to get shader identifier for %ls", exportName);
         return false;
     }
 
-    // �V�F�[�_�[���R�[�h�T�C�Y�i32�o�C�g�A���C�������g�j
+    // シェーダーレコードサイズ（32バイトアラインメント）
     _shaderRecordSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
-    _shaderRecordSize = (_shaderRecordSize + 31) & ~31; // 32�o�C�g�A���C�������g
+    _shaderRecordSize = (_shaderRecordSize + 31) & ~31; // 32バイトアラインメント
 
-    // �o�b�t�@�쐬
+    // バッファ作成
     auto uploadHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
     auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(_shaderRecordSize);
 
@@ -36,7 +36,7 @@ bool ShaderTable::CreateShaderTable(
         return false;
     }
 
-    // �V�F�[�_�[���ʎq���R�s�[
+    // シェーダー識別子をコピー
     void* mapped;
     (*buffer)->Map(0, nullptr, &mapped);
     memcpy(mapped, shaderId, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
@@ -46,12 +46,12 @@ bool ShaderTable::CreateShaderTable(
 }
 
 bool ShaderTable::Initialize(ID3D12StateObjectProperties* stateObjectProps) {
-    // RayGen�V�F�[�_�[�e�[�u��
+    // RayGenシェーダーテーブル
     if (!CreateShaderTable(stateObjectProps, L"MyRaygenShader", &_rayGenShaderTable)) {
         return false;
     }
 
-    // Miss�V�F�[�_�[�e�[�u��
+    // Missシェーダーテーブル
     if (!CreateShaderTable(stateObjectProps, L"MyMissShader", &_missShaderTable)) {
         return false;
     }

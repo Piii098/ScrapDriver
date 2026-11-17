@@ -9,7 +9,7 @@ public:
     RigidbodyComponent(GameObject& parent, int updateLayer = 30);
     ~RigidbodyComponent() override;
 
-    void Update(float deltaTime) override;  // �V����Update�֐���ǉ�
+    void Update(float deltaTime) override;  // 新しくUpdate関数を追加
     void FixedUpdate(float deltaTime) override;
     void CalculateVelocity(float deltaTime);
     void UpdatePosition(float deltaTime);

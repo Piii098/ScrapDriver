@@ -7,7 +7,7 @@
 
 RigidbodyComponent::RigidbodyComponent(GameObject& parent, int updateLayer)
     : Component(parent, updateLayer)
-    , _mass(1.f) // ���ʂ��[���ɂ��Ȃ�
+    , _mass(1.f) // 質量を0にしない
     , _sumOfForces(Vector3::Zero)
     , _velocity(Vector3::Zero)
     , _internalPosition(Vector3::Zero){

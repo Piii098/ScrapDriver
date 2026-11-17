@@ -5,7 +5,7 @@ class AccelerationStructure {
 public:
     AccelerationStructure();
 
-    // �O�p�`1��BLAS��TLAS�������\�z
+    // 三角形1つでBLASとTLASを簡易構築
     bool BuildSimple(float* vertices, int vertexCount);
     
     // 複数メッシュ用のBLAS/TLAS構築

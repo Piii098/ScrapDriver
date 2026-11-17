@@ -17,7 +17,7 @@ private:
 
 	class CameraObject* _camera;
 
-	// ƒJƒƒ‰„‰ñiƒEƒFƒCƒ|ƒCƒ“ƒgj
+	// ã‚«ãƒ¡ãƒ©å·¡å›ï¼ˆã‚¦ã‚§ã‚¤ãƒã‚¤ãƒ³ãƒˆï¼‰
 	bool _cameraTourEnabled = true;
 	std::vector<Vector3> _cameraTourPoints;
 	Vector3 _cameraTourLookAt = Vector3(0.0f, 60.0f, 50.0f);
