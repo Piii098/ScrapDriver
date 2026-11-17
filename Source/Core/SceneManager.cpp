@@ -1,4 +1,4 @@
-﻿#include "Core/SceneManager.h"
+#include "Core/SceneManager.h"
 #include "Core/Scene.h"
 #include "Core/GameObject.h"
 #include "Resource/AssetManager.h"
@@ -71,10 +71,8 @@ bool SceneManager::ChangeScene(const std::string& name) {
         _currentScene = it->second;
         if (_currentScene) {
             if (!_currentScene->Initialize()) {
-                if (!_currentScene->Initialize()) {
-                    _currentScene = nullptr;
-                    return false;
-                }
+                _currentScene = nullptr;
+                return false;
             }
             //_currentScene->OnEnter();
         }

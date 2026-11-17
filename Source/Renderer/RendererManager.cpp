@@ -1,4 +1,4 @@
-﻿#include "Renderer/RendererManager.h"
+#include "Renderer/RendererManager.h"
 #include "DirectX/Direct3D.h"
 #include "DirectX/ConstantBuffer.h"
 #include "DirectX/GenericConstantBuffer.h"
@@ -211,8 +211,10 @@ void RendererManager::Render(std::function<void()> renderFunc) {
     }
 
 	// ビュー・プロジェクション行列を更新（1回のみ）
-	_mapPtr->View = _viewMatrix;
-	_mapPtr->Proj = _projectionMatrix;
+	if (_mapPtr) {
+		_mapPtr->View = _viewMatrix;
+		_mapPtr->Proj = _projectionMatrix;
+	}
 
 	// シーン定数バインド（b0）
 	D3D12_GPU_DESCRIPTOR_HANDLE cbvHandle = DESCRIPTORMANAGER.GetGPUHandleAt(_cbvIndex);
@@ -251,7 +253,7 @@ void RendererManager::Render(std::function<void()> renderFunc) {
 
 bool RendererManager::CreateRenderingResources() {
 
-	_constantBuffer = new ConstantBuffer();\
+	_constantBuffer = new ConstantBuffer();
 
 	if(!_constantBuffer->IsValid()) {
 		SDL_Log("Failed to create constant buffer");

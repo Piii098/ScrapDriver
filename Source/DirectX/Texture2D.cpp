@@ -1,4 +1,4 @@
-﻿#include "DirectX/Texture2D.h"
+#include "DirectX/Texture2D.h"
 #include "DirectX/DescriptorHeap.h"
 #include <map>
 
@@ -56,7 +56,8 @@ bool Texture2D::LoadFromFile(const std::wstring& filePath)
 
     if (ext == L"png" || ext == L"jpg")
     {
-        LoadFromWICFile(filePath.c_str(), WIC_FLAGS_NONE, &metadata, scratchImg);
+        // 戻り値を受け取らないと hr が S_FALSE のままで失敗扱いになる
+        hr = LoadFromWICFile(filePath.c_str(), WIC_FLAGS_NONE, &metadata, scratchImg);
     }
     else if (ext == L"tga") // tgaの時はTGAFileを使う
     {

@@ -1,4 +1,4 @@
-﻿#include "DirectX/Direct3D.h"
+#include "DirectX/Direct3D.h"
 #include "Core/SceneManager.h"
 #include "DirectX/PipelineState.h"
 
@@ -78,11 +78,11 @@ bool Direct3D::Initialize() {
 }
 
 void Direct3D::EnableDebugLayer() {
-	ID3D12Debug* debugController;
+	ID3D12Debug* debugController = nullptr;
 	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)))) {
 		debugController->EnableDebugLayer();
+		debugController->Release();
 	}
-	debugController->Release();
 }	
 
 bool Direct3D::CreateDevice() {
@@ -114,6 +114,7 @@ bool Direct3D::EnumerateAdapters() {
 	IDXGIAdapter* adapter = nullptr;
 	for (UINT i = 0; _dxgiFactory->EnumAdapters(i, &adapter) != DXGI_ERROR_NOT_FOUND; i++) {
 		_adapters.push_back(adapter);
+		adapter->Release(); // EnumAdapters は参照カウントを増やすので ComPtr 側で保持する分だけ残す
 	}
 
 	for (auto adpt : _adapters) {
@@ -122,14 +123,24 @@ bool Direct3D::EnumerateAdapters() {
 		std::wstring wstrDesc = desc.Description;
 		std::string strDesc(wstrDesc.begin(), wstrDesc.end());
 
-		SDL_Log("Adapter %d: %s", _adapters.size(), strDesc.c_str());
+		SDL_Log("Adapter %d: %s", static_cast<int>(_adapters.size()), strDesc.c_str());
 
-		if (wstrDesc.find(L"NVIDIA") != std::string::npos) {
+		if (wstrDesc.find(L"NVIDIA") != std::wstring::npos) {
 			SDL_Log("Selected Adapter: %s", strDesc.c_str());
 			_selectedAdapter = adpt;
 		}
 	}
-	return true;
+
+	// NVIDIA が無い環境（AMD / Intel / WARP など）でも動くよう、先頭アダプターにフォールバック
+	if (!_selectedAdapter && !_adapters.empty()) {
+		_selectedAdapter = _adapters.front();
+		DXGI_ADAPTER_DESC desc = {};
+		_selectedAdapter->GetDesc(&desc);
+		std::wstring wstrDesc = desc.Description;
+		SDL_Log("Fallback Adapter: %s", std::string(wstrDesc.begin(), wstrDesc.end()).c_str());
+	}
+
+	return _selectedAdapter != nullptr;
 }
                                         
 bool Direct3D::CreateCommandQueue() {
@@ -231,8 +242,7 @@ bool Direct3D::CreateFence() {
 		return false;
 	}
 
-	_fenceValue[_currentBackBufferIndex]++;
-
+	// フェンス値は 0 から開始する（EndRender 側で Signal する値を事前に加算しない）
 	_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 
 	return _fenceEvent != nullptr;

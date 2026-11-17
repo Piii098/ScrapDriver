@@ -1,4 +1,4 @@
-﻿#include "Core/Game.h"
+#include "Core/Game.h"
 #include <SDL3_ttf/SDL_ttf.h>
 #include "Input/InputManager.h"
 #include "Renderer/RendererManager.h"
@@ -23,7 +23,8 @@ Game::~Game() {
 bool Game::Initalize() {
 
 	// SDL
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD) == 0) {
+	// 注意: SDL_Init は成功時に true を返す（SDL3 で 0/負値 から bool に変更された）
+	if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD)) {
 		SDL_Log("Failed to intialized SDL : %s", SDL_GetError());
 		return false;
 	}
