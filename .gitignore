@@ -362,7 +362,16 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
-include/
-lib/
+include/*
+!include/SDL3/
+!include/SDL3_ttf/
+!include/assimp/
+!include/glm/
+lib/*
+!lib/SDL3*.dll
+!lib/SDL3*.lib
+!lib/assimp/
+!lib/assimp/Debug/
+!lib/assimp/Release/
 # VSCode 個人設定
 .vscode/
