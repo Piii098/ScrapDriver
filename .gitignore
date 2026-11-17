@@ -364,3 +364,5 @@ FodyWeavers.xsd
 
 include/
 lib/
+# VSCode 個人設定
+.vscode/
